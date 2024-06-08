@@ -1,9 +1,0 @@
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/intrinsics_gen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/omp_gen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/acc_gen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/ARMTargetParserTableGen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/AArch64TargetParserTableGen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/RISCVTargetParserTableGen.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/poke.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/edit_cache.dir
-/Users/daidaiso/Project/ntou-compiler-project/build/CMakeFiles/rebuild_cache.dir
