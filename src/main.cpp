@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
   ctx.dumpTokens = dumpTokens;
   ctx.dumpAST = dumpAST;
   yyparse(&ctx);
-  
   if (ctx.dumpAST) {
     AstDumper dumper;
     ctx.root->accept(dumper);

@@ -19,6 +19,9 @@ jobs:
       - name: Set up Flex and Bison
         run: sudo apt-get install -y flex bison
 
+      - name: Set up CMake
+        run: sudo apt-get install -y cmake
+
       - name: Set up LLVM
         run: |
           sudo apt-get install -y llvm clang
@@ -26,11 +29,14 @@ jobs:
           export CC=clang
           export CXX=clang++
 
+      - name: Configure CMake
+        run: cmake -S . -B build
+
       - name: Build the project
-        run: make
+        run: cmake --build build
 
       - name: Run tests
-        run: make test
+        run: cd build && ctest
 
   release:
     needs: build-and-test
@@ -44,6 +50,9 @@ jobs:
       - name: Set up Flex and Bison
         run: sudo apt-get install -y flex bison
 
+      - name: Set up CMake
+        run: sudo apt-get install -y cmake
+
       - name: Set up LLVM
         run: |
           sudo apt-get install -y llvm clang
@@ -51,8 +60,11 @@ jobs:
           export CC=clang
           export CXX=clang++
 
+      - name: Configure CMake
+        run: cmake -S . -B build
+
       - name: Build the project
-        run: make
+        run: cmake --build build
 
       - name: Create Release
         id: create_release
