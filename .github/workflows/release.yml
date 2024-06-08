@@ -30,7 +30,10 @@ jobs:
           export CXX=clang++
 
       - name: Configure CMake
-        run: cmake -S . -B build -DFLEX_EXECUTABLE=/usr/bin/flex -DFL_LIBRARY=/usr/lib/x86_64-linux-gnu/libfl.a
+        run: |
+          export FLEX_PATH=$(which flex)
+          export FL_LIBRARY=$(pkg-config --libs-only-L flex | sed 's/-L//')
+          cmake -S . -B build -DFLEX_EXECUTABLE=$FLEX_PATH -DFL_LIBRARY=$FL_LIBRARY
 
       - name: Build the project
         run: cmake --build build
@@ -61,7 +64,10 @@ jobs:
           export CXX=clang++
 
       - name: Configure CMake
-        run: cmake -S . -B build -DFLEX_EXECUTABLE=/usr/bin/flex -DFL_LIBRARY=/usr/lib/x86_64-linux-gnu/libfl.a
+        run: |
+          export FLEX_PATH=$(which flex)
+          export FL_LIBRARY=$(pkg-config --libs-only-L flex | sed 's/-L//')
+          cmake -S . -B build -DFLEX_EXECUTABLE=$FLEX_PATH -DFL_LIBRARY=$FL_LIBRARY
 
       - name: Build the project
         run: cmake --build build
