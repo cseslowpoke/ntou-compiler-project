@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flex bison cmake llvm clang build-essential libfl-dev
+          sudo apt-get install -y flex bison cmake llvm clang build-essential libfl-dev zip
 
       - name: Configure CMake
         run: |
@@ -52,7 +52,10 @@ jobs:
 
       - name: Build the project
         run: cmake --build build
-
+      - name: Package executable
+        run: |
+          cd build
+          zip poke.zip poke
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -70,6 +73,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: path/to/your/asset.zip
-          asset_name: your-asset.zip
+          asset_path: build/poke.zip
+          asset_name: poke.zip
           asset_content_type: application/zip
