@@ -1,1 +1,2 @@
-# ntou-compiler-project
+# poke
+A sub c compiler for school project
