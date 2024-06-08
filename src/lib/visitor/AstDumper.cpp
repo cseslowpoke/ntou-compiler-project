@@ -10,7 +10,19 @@ void AstDumper::printIndent() {
   }
 }
 
-void AstDumper::visit(BinaryOperator &node) {
+void AstDumper::visit(AssignStmt &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("AssignStmt <line:{0}, col:{1}>\n", node.getLocation().line, node.getLocation().col);
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
+};
+void AstDumper::visit(BinaryOp &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("BinaryOp <line:{0}, col:{1}> {2}\n", node.getLocation().line, node.getLocation().col, node.getOpName());
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
   
 };
 void AstDumper::visit(BreakStmt &node) {
@@ -48,7 +60,24 @@ void AstDumper::visit(DeclStmt &node) {
   node.visitChildren(*this);
   decreaseIndent();
 };
-void AstDumper::visit(FunctionDecl &node) {
+
+void AstDumper::visit(ForStmt &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("ForStmt <line:{0}, col:{1}>\n", node.getLocation().line, node.getLocation().col);
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
+};
+
+void AstDumper::visit(FuncInv &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("FunctionInv <line:{0}, col:{1}> {2}\n", node.getLocation().line, node.getLocation().col, node.getName());
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
+};
+
+void AstDumper::visit(FuncDecl &node) {
   printIndent();
   llvm::outs() << llvm::formatv("FunctionDecl <line:{0}, col:{1}> {2}\n", node.getLocation().line, node.getLocation().col, node.prototype()); 
   increaseIndent();
@@ -56,6 +85,11 @@ void AstDumper::visit(FunctionDecl &node) {
   decreaseIndent();
 };
 void AstDumper::visit(IfStmt &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("IfStmt <line:{0}, col:{1}>\n", node.getLocation().line, node.getLocation().col);
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
   
 };
 void AstDumper::visit(NullStmt &node) {
@@ -79,8 +113,12 @@ void AstDumper::visit(Program &node) {
   node.visitChildren(*this);
   decreaseIndent();
 };
-void AstDumper::visit(UnaryOperator &node) {
-  
+void AstDumper::visit(UnaryOp &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("UnaryOp <line:{0}, col:{1}> {2}\n", node.getLocation().line, node.getLocation().col, node.getOpName());
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
 };
 void AstDumper::visit(VarDecl &node) {
   printIndent();
@@ -92,7 +130,15 @@ void AstDumper::visit(VarDecl &node) {
 
 void AstDumper::visit(VarRef &node) {
   printIndent();
-  // llvm::outs() << llvm::formatv("VarRef <line:{0}, col:{1}> {2} {3}\n", node.getLocation().line, node.getLocation().col, node.getId(), node.getTypeName());
+  llvm::outs() << llvm::formatv("VarRef <line:{0}, col:{1}> {2} {3}\n", node.getLocation().line, node.getLocation().col, node.getId(), node.getTypeName());
+  increaseIndent();
+  node.visitChildren(*this);
+  decreaseIndent();
+};
+
+void AstDumper::visit(WhileStmt &node) {
+  printIndent();
+  llvm::outs() << llvm::formatv("WhileStmt <line:{0}, col:{1}>\n", node.getLocation().line, node.getLocation().col);
   increaseIndent();
   node.visitChildren(*this);
   decreaseIndent();

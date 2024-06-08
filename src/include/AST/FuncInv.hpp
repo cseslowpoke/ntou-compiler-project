@@ -1,0 +1,25 @@
+#ifndef __AST_FUNCINVOCATION_HPP
+#define __AST_FUNCINVOCATION_HPP
+
+#include "AST/Expression.hpp"
+#include "visitor/AstNodeVisitor.hpp"
+#include <memory>
+#include <vector>
+#include <string>
+
+class FuncInv : public Expression {
+public:
+  FuncInv(uint32_t line, uint32_t col, std::string name, std::unique_ptr<std::vector<std::unique_ptr<Expression>>> args);
+  ~FuncInv() = default;
+
+  const std::string& getName() const { return name; }
+  // const std::vector<std::unique_ptr<Expression>>& getArgs() const { return args; }
+
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
+  void visitChildren(ASTNodeVisitor &v) override;
+  private:
+    std::string name;
+    std::unique_ptr<std::vector<std::unique_ptr<Expression>>> args;
+};
+
+#endif

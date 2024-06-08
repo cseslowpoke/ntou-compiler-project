@@ -6,6 +6,7 @@
 class Type{
   public:
     enum class Kind {
+        None,
         INT,
         VOID,
         CHAR,
@@ -19,12 +20,13 @@ class Type{
     // void setDimension(int _dimension) {dimension = _dimension;};
     void addDimension(int dim) {arraydim.push_back(dim);};
     std::string getName() const {
-      std::string name;
+      std::string name = "";
       switch (kind) {
         case Kind::CHAR: name = "char"; break;
         case Kind::FLOAT: name = "float"; break;
         case Kind::INT: name = "int"; break;
         case Kind::VOID: name = "void"; break;
+        default: break;
       }
       for (int dim: arraydim) {
         name += "[" + std::to_string(dim) +"]";

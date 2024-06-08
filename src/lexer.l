@@ -66,8 +66,8 @@ nonzero_float ({nonzero_integer}\.(0|[0-9]*[1-9]))|(0\.([0-9]*[1-9]))
 ")" {LIST_TOKEN(")"); return R_PAREN; }
 "[" {LIST_TOKEN("["); return L_BRACKET; }
 "]" {LIST_TOKEN("]"); return R_BRACKET; }
-"{" {LIST_TOKEN("{"); return L_PAREN; }
-"}" {LIST_TOKEN("}"); return R_PAREN; }
+"{" {LIST_TOKEN("{"); return L_BRACE; }
+"}" {LIST_TOKEN("}"); return R_BRACE; }
 
     /* Operator */
 "+"   {LIST_TOKEN("+"); return PLUS; }

@@ -8,16 +8,16 @@
 #include <vector>
 #include <sstream>
 
-class FunctionDecl : public AstNode {
+class FuncDecl : public AstNode {
   std::string name;
   std::unique_ptr<DeclStmt> formals;
   std::unique_ptr<CompoundStmt> body;
   std::unique_ptr<Type> return_type;
   public:
-    FunctionDecl(uint32_t line, uint32_t col, std::string name, std::unique_ptr<DeclStmt> formals,
+    FuncDecl(uint32_t line, uint32_t col, std::string name, std::unique_ptr<DeclStmt> formals,
     std::unique_ptr<CompoundStmt> body,
     std::unique_ptr<Type> rt_type);
-    ~FunctionDecl() = default;
+    ~FuncDecl() = default;
 
     void accept(ASTNodeVisitor &v) override {v.visit(*this); };
     void visitChildren(ASTNodeVisitor &v) override;

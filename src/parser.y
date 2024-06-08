@@ -1,16 +1,23 @@
 %{
 #include "AST/Ast.hpp"
+#include "AST/AssignStmt.hpp"
+#include "AST/BinaryOp.hpp"
 #include "AST/BreakStmt.hpp"
 #include "AST/CompoundStmt.hpp"
 #include "AST/Constant.hpp"
 #include "AST/ContinueStmt.hpp"
 #include "AST/DeclStmt.hpp"
 #include "AST/Expression.hpp"
-#include "AST/Function.hpp"
+#include "AST/ForStmt.hpp"
+#include "AST/FuncDecl.hpp"
+#include "AST/FuncInv.hpp"
+#include "AST/NullStmt.hpp"
 #include "AST/Program.hpp"
 #include "AST/ReturnStmt.hpp"
+#include "AST/UnaryOp.hpp"
 #include "AST/VarDecl.hpp"
-#include "AST/Constant.hpp"
+#include "AST/VarRef.hpp"
+#include "AST/WhileStmt.hpp"
 #include "visitor/AstDumper.hpp"
 #include "Type.hpp"
 #include "Context.hpp"
@@ -62,8 +69,8 @@ extern int yylex_destroy(Context *ctx);
     float float_literal;
     std::string *string_literal;
     std::string *identifier;
-    std::vector<std::unique_ptr<FunctionDecl>> *functions;
-    FunctionDecl *function;
+    std::vector<std::unique_ptr<FuncDecl>> *functions;
+    FuncDecl *function;
     std::vector<std::unique_ptr<DeclStmt>> *decls;
     DeclStmt *decl;
     std::vector<std::unique_ptr<VarDecl>> *vars;
@@ -76,6 +83,8 @@ extern int yylex_destroy(Context *ctx);
     Constant *constant;
     Expression *expr;
     std::vector<std::unique_ptr<Expression>> *exprs;
+    VarRef *var_ref;
+    FuncInv *func_inv;
     // std::vector<std::unique_ptr<node>> nodes;
 }
 
@@ -99,12 +108,11 @@ extern int yylex_destroy(Context *ctx);
 %type <stmts> Statements
 %type <node> Statement
 %type <node> Simple
+%type <node> Jump
 %type <node> If
+%type <compound_stmt> ElseOrNot
 %type <node> While
 %type <node> For
-%type <node> Return
-%type <node> Break
-%type <node> Continue
 %type <type> ArrDeclList
 %type <type> ArrDecls
 %type <type_kind> Type
@@ -114,7 +122,8 @@ extern int yylex_destroy(Context *ctx);
 %type <expr> ASSIGNorNot
 %type <exprs> ArgumentList
 %type <exprs> Arguments
-
+%type <var_ref> VarRef
+%type <func_inv> FuncInvocation
 
   /* Keywords */
 %token KW_IF KW_ELSE KW_WHILE KW_RETURN KW_BREAK KW_CONTINUE KW_FOR
@@ -123,6 +132,7 @@ extern int yylex_destroy(Context *ctx);
 %token COMMA SEMI COLON
 %token L_PAREN R_PAREN
 %token L_BRACKET R_BRACKET 
+%token L_BRACE R_BRACE
   /* Precedence rules */
 %right ASSIGN
 %left OR
@@ -142,7 +152,7 @@ extern int yylex_destroy(Context *ctx);
 %%
 program: 
     Functions {
-        std::unique_ptr<std::vector<std::unique_ptr<FunctionDecl>>> functions($1);
+        std::unique_ptr<std::vector<std::unique_ptr<FuncDecl>>> functions($1);
         ctx->root = std::make_unique<Program>(@1.first_line, @1.first_column, std::move(functions)); 
         // llvm::outs() << *(ctx->root->functions)[0]->getName();
     }
@@ -150,13 +160,13 @@ program:
 
 Functions:
     Function {
-        $$ = new std::vector<std::unique_ptr<FunctionDecl>>();
-        std::unique_ptr<FunctionDecl> func($1);
+        $$ = new std::vector<std::unique_ptr<FuncDecl>>();
+        std::unique_ptr<FuncDecl> func($1);
         $$->push_back(std::move(func));
     }
     |
     Functions Function {
-        std::unique_ptr<FunctionDecl> func($2);
+        std::unique_ptr<FuncDecl> func($2);
         $1->push_back(std::move(func));
     }
     ;
@@ -168,7 +178,7 @@ Function:
         std::unique_ptr<CompoundStmt> p_comstmt($6);
         std::unique_ptr<Type> type = std::make_unique<Type>();
         type->setKind(*$1);
-        $$ = new FunctionDecl(
+        $$ = new FuncDecl(
             @1.first_line, @1.first_column,
             *$2, std::move(p_decl), std::move(p_comstmt),
             std::move(type));
@@ -206,7 +216,11 @@ Parameter:
         $$->setType(std::move(std::unique_ptr<Type>($3)));
     }
     ;
-
+VarRef:
+    ID ArrDeclList {
+        $$ = new VarRef(@1.first_line, @1.first_column, *$1, std::move(std::unique_ptr<Type>($2)));
+    }
+    ;
 ArrDeclList:
     Epsilon {
         $$ = new Type();
@@ -221,11 +235,12 @@ ArrDeclList:
 ArrDecls:
     L_BRACKET INTEGER_LITERAL R_BRACKET {
         $$ = new Type();
+        $$->addDimension($2);
     }
     |
     ArrDecls L_BRACKET INTEGER_LITERAL R_BRACKET {
-        $1->addDimension($3);
         $$ = $1;
+        $$->addDimension($3);
     }
     ;
 
@@ -352,19 +367,29 @@ Statement:
         $$ = $1;
     }
     | 
-    Simple {
+    Simple{
+        $$ = $1;
+    }
+    |
+    Jump {
         $$ = $1;
     }
     | 
-    If
+    If {
+        $$ = $1;
+    }
     | 
-    While
+    While {
+        $$ = $1;
+    }
     | 
-    For
+    For {
+        $$ = $1;
+    }
     ;
 
 CompoundStatement: 
-    L_PAREN DeclList StatementList R_PAREN {
+    L_BRACE DeclList StatementList R_BRACE {
         std::unique_ptr<std::vector<std::unique_ptr<DeclStmt>>> p_decls($2);
         std::unique_ptr<std::vector<std::unique_ptr<AstNode>>> p_stmts($3);
         $$ = new CompoundStmt(@1.first_line, @1.first_column, std::move(p_decls), std::move(p_stmts));
@@ -372,17 +397,13 @@ CompoundStatement:
     ;      
 
 Simple: 
-    ID ASSIGN Expression SEMI
-    | 
-    Return {
-        $$ = $1;
+    VarRef ASSIGN Expression SEMI {
+        std::unique_ptr<VarRef> var($1);
+        std::unique_ptr<Expression> expr($3);
+        $$ = new AssignStmt(@1.first_line, @1.first_column, std::move(var), std::move(expr));
     }
-    | 
-    Break {
-        $$ = $1;
-    }
-    | 
-    Continue {
+    |
+    FuncInvocation SEMI {
         $$ = $1;
     }
     |
@@ -390,48 +411,67 @@ Simple:
         $$ = new NullStmt(@1.first_line, @1.first_column);
     }
     ;
-    
 
-
-If: 
-    KW_IF L_PAREN Expression R_PAREN CompoundStatement ElseOrNot
-    ;
-
-ElseOrNot:
-    KW_ELSE CompoundStatement
-    |
-    Epsilon
-
-While: 
-    KW_WHILE L_PAREN Expression R_PAREN CompoundStatement
-    ;
-
-For:
-    KW_FOR L_PAREN Simple Expression SEMI Simple R_PAREN CompoundStatement
-    ;
-
-Return:
+Jump:
     KW_RETURN Expression SEMI {
         std::unique_ptr<Expression> expr($2);
         $$ = new ReturnStmt(@1.first_line, @1.first_column, std::move(expr));
     }
-    ;
-    
-Break:
+    | 
     KW_BREAK SEMI {
         $$ = new BreakStmt(@1.first_line, @1.first_column);
     }
-    ;
-    
-Continue:
+    | 
     KW_CONTINUE SEMI {
         $$ = new ContinueStmt(@1.first_line, @1.first_column);
     }
+
+If: 
+    KW_IF L_PAREN Expression R_PAREN CompoundStatement ElseOrNot {
+        std::unique_ptr<Expression> cond($3);
+        std::unique_ptr<CompoundStmt> then_stmt($5);
+        std::unique_ptr<CompoundStmt> else_stmt($6);
+        $$ = new IfStmt(@1.first_line, @1.first_column, std::move(cond), std::move(then_stmt), std::move(else_stmt));
+    }
     ;
+
+ElseOrNot:
+    KW_ELSE CompoundStatement {
+        $$ = $2;
+    }
+    |
+    Epsilon {
+        $$ = nullptr;
+    }
+
+While: 
+    KW_WHILE L_PAREN Expression R_PAREN CompoundStatement {
+        std::unique_ptr<Expression> cond($3);
+        std::unique_ptr<CompoundStmt> body($5);
+        $$ = new WhileStmt(@1.first_line, @1.first_column, std::move(cond), std::move(body));
+    }
+    ;
+
+For:
+    KW_FOR L_PAREN Simple Expression SEMI  VarRef ASSIGN Expression  R_PAREN CompoundStatement {
+        std::unique_ptr<AstNode> init($3);
+        std::unique_ptr<Expression> cond($4);
+        std::unique_ptr<VarRef> var($6);
+        std::unique_ptr<Expression> expr($8);
+        std::unique_ptr<AssignStmt> update = std::make_unique<AssignStmt>(@6.first_line, @6.first_column, std::move(var), std::move(expr));
+        std::unique_ptr<CompoundStmt> body($10);
+        $$ = new ForStmt(@1.first_line, @1.first_column, std::move(init), std::move(cond), std::move(update), std::move(body));
+    }
+    ;
+
+
 
   // Expression
 FuncInvocation:
-    ID L_PAREN ArgumentList R_PAREN
+    ID L_PAREN ArgumentList R_PAREN {
+        std::unique_ptr<std::vector<std::unique_ptr<Expression>> > args($3);
+        $$ = new FuncInv(@1.first_line, @1.first_column, *$1, std::move(args));
+    }
     
 ArgumentList:
     Epsilon {
@@ -460,41 +500,120 @@ Expression:
         $$ = $1;   
     }
     |
-    ID ArrDeclList
+    VarRef {
+        $$ = $1;
+    }
     |
-    FuncInvocation
+    FuncInvocation {
+        $$ = $1;
+    }
     |
-    Expression PLUS Expression
+    Expression PLUS Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::ADD;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression MINUS Expression
+    Expression MINUS Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::SUB;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression MULTIPLY Expression
+    Expression MULTIPLY Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::MUL;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression DIVIDE Expression
+    Expression DIVIDE Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::DIV;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression MOD Expression
+    Expression MOD Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::MOD;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression LESS Expression
+    Expression LESS Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::LT;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression LESS_OR_EQUAL Expression
+    Expression LESS_OR_EQUAL Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::LEQ;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression GREATER Expression
+    Expression GREATER Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::GT;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression GREATER_OR_EQUAL Expression
+    Expression GREATER_OR_EQUAL Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::GEQ;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression EQUAL Expression
+    Expression EQUAL Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::EQ;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression NOT_EQUAL Expression
+    Expression NOT_EQUAL Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::NEQ;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression AND Expression
+    Expression AND Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::AND;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    Expression OR Expression
+    Expression OR Expression {
+        std::unique_ptr<Expression> lhs($1);
+        std::unique_ptr<Expression> rhs($3);
+        BinaryOp::Op op = BinaryOp::Op::OR;
+        $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
+    }
     |
-    NOT Expression
+    NOT Expression {
+        std::unique_ptr<Expression> rhs($2);
+        UnaryOp::Op op = UnaryOp::Op::NOT;
+        $$ = new UnaryOp(@1.first_line, @1.first_column, op, std::move(rhs));
+    }
     |
-    MINUS Expression %prec UMINUS
+    MINUS Expression %prec UMINUS {
+        std::unique_ptr<Expression> rhs($2);
+        UnaryOp::Op op = UnaryOp::Op::NEG;
+        $$ = new UnaryOp(@1.first_line, @1.first_column, op, std::move(rhs));
+    }
     |
-    L_PAREN Expression R_PAREN
+    L_PAREN Expression R_PAREN {
+        $$ = $2;
+    }
     ;
 
     /*
