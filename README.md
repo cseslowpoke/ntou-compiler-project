@@ -1,2 +1,2 @@
 # poke
-A sub c compiler for school project
+A C subset compiler for a course project
