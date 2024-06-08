@@ -45,9 +45,10 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 36 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 43 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
 
   #include "Context.hpp"
+  #include "Type.hpp"
   #include "llvm/ADT/StringRef.h"
   #include "llvm/Support/raw_ostream.h"
   #include "llvm/Support/FormatVariadic.h"
@@ -61,7 +62,7 @@ extern int yydebug;
 
    void yyerror(Context* ctx, const char* message);
 
-#line 65 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.h"
+#line 66 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -76,42 +77,43 @@ extern int yydebug;
     FLOAT_LITERAL = 259,           /* FLOAT_LITERAL  */
     ID = 260,                      /* ID  */
     STRING_LITERAL = 261,          /* STRING_LITERAL  */
-    KW_IF = 262,                   /* KW_IF  */
-    KW_ELSE = 263,                 /* KW_ELSE  */
-    KW_WHILE = 264,                /* KW_WHILE  */
-    KW_RETURN = 265,               /* KW_RETURN  */
-    KW_BREAK = 266,                /* KW_BREAK  */
-    KW_CONTINUE = 267,             /* KW_CONTINUE  */
-    KW_FOR = 268,                  /* KW_FOR  */
-    KW_INT = 269,                  /* KW_INT  */
-    KW_VOID = 270,                 /* KW_VOID  */
-    KW_CHAR = 271,                 /* KW_CHAR  */
-    KW_FLOAT = 272,                /* KW_FLOAT  */
-    KW_TRUE = 273,                 /* KW_TRUE  */
-    KW_FALSE = 274,                /* KW_FALSE  */
-    COMMA = 275,                   /* COMMA  */
-    SEMI = 276,                    /* SEMI  */
-    COLON = 277,                   /* COLON  */
-    L_PAREN = 278,                 /* L_PAREN  */
-    R_PAREN = 279,                 /* R_PAREN  */
-    L_BRACKET = 280,               /* L_BRACKET  */
-    R_BRACKET = 281,               /* R_BRACKET  */
-    ASSIGN = 282,                  /* ASSIGN  */
-    OR = 283,                      /* OR  */
-    AND = 284,                     /* AND  */
-    NOT = 285,                     /* NOT  */
-    LESS = 286,                    /* LESS  */
-    LESS_OR_EQUAL = 287,           /* LESS_OR_EQUAL  */
-    EQUAL = 288,                   /* EQUAL  */
-    GREATER = 289,                 /* GREATER  */
-    GREATER_OR_EQUAL = 290,        /* GREATER_OR_EQUAL  */
-    NOT_EQUAL = 291,               /* NOT_EQUAL  */
-    PLUS = 292,                    /* PLUS  */
-    MINUS = 293,                   /* MINUS  */
-    MULTIPLY = 294,                /* MULTIPLY  */
-    DIVIDE = 295,                  /* DIVIDE  */
-    MOD = 296,                     /* MOD  */
-    UMINUS = 297                   /* UMINUS  */
+    CHAR_LITERAL = 262,            /* CHAR_LITERAL  */
+    KW_IF = 263,                   /* KW_IF  */
+    KW_ELSE = 264,                 /* KW_ELSE  */
+    KW_WHILE = 265,                /* KW_WHILE  */
+    KW_RETURN = 266,               /* KW_RETURN  */
+    KW_BREAK = 267,                /* KW_BREAK  */
+    KW_CONTINUE = 268,             /* KW_CONTINUE  */
+    KW_FOR = 269,                  /* KW_FOR  */
+    KW_INT = 270,                  /* KW_INT  */
+    KW_VOID = 271,                 /* KW_VOID  */
+    KW_CHAR = 272,                 /* KW_CHAR  */
+    KW_FLOAT = 273,                /* KW_FLOAT  */
+    KW_TRUE = 274,                 /* KW_TRUE  */
+    KW_FALSE = 275,                /* KW_FALSE  */
+    COMMA = 276,                   /* COMMA  */
+    SEMI = 277,                    /* SEMI  */
+    COLON = 278,                   /* COLON  */
+    L_PAREN = 279,                 /* L_PAREN  */
+    R_PAREN = 280,                 /* R_PAREN  */
+    L_BRACKET = 281,               /* L_BRACKET  */
+    R_BRACKET = 282,               /* R_BRACKET  */
+    ASSIGN = 283,                  /* ASSIGN  */
+    OR = 284,                      /* OR  */
+    AND = 285,                     /* AND  */
+    NOT = 286,                     /* NOT  */
+    LESS = 287,                    /* LESS  */
+    LESS_OR_EQUAL = 288,           /* LESS_OR_EQUAL  */
+    EQUAL = 289,                   /* EQUAL  */
+    GREATER = 290,                 /* GREATER  */
+    GREATER_OR_EQUAL = 291,        /* GREATER_OR_EQUAL  */
+    NOT_EQUAL = 292,               /* NOT_EQUAL  */
+    PLUS = 293,                    /* PLUS  */
+    MINUS = 294,                   /* MINUS  */
+    MULTIPLY = 295,                /* MULTIPLY  */
+    DIVIDE = 296,                  /* DIVIDE  */
+    MOD = 297,                     /* MOD  */
+    UMINUS = 298                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -120,7 +122,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 52 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 60 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
 
     int integer_literal;
     float float_literal;
@@ -130,13 +132,19 @@ union YYSTYPE
     FunctionDecl *function;
     std::vector<std::unique_ptr<DeclStmt>> *decls;
     DeclStmt *decl;
+    std::vector<std::unique_ptr<VarDecl>> *vars;
     VarDecl *variable;
     std::vector<std::unique_ptr<AstNode>> *stmts;
     CompoundStmt *compound_stmt;
     AstNode *node;
+    Type::Kind *type_kind;
+    Type *type;
+    Constant *constant;
+    Expression *expr;
+    std::vector<std::unique_ptr<Expression>> *exprs;
     // std::vector<std::unique_ptr<node>> nodes;
 
-#line 140 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.h"
+#line 148 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

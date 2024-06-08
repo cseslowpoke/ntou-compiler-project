@@ -70,12 +70,19 @@
 #line 1 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
 
 #include "AST/Ast.hpp"
-
+#include "AST/BreakStmt.hpp"
 #include "AST/CompoundStmt.hpp"
+#include "AST/Constant.hpp"
+#include "AST/ContinueStmt.hpp"
 #include "AST/DeclStmt.hpp"
+#include "AST/Expression.hpp"
 #include "AST/Function.hpp"
 #include "AST/Program.hpp"
+#include "AST/ReturnStmt.hpp"
 #include "AST/VarDecl.hpp"
+#include "AST/Constant.hpp"
+#include "visitor/AstDumper.hpp"
+#include "Type.hpp"
 #include "Context.hpp"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
@@ -102,7 +109,7 @@ extern char *yytext;        /* declared by lex */
 static void yyerror(Context *ctx, const char *msg);
 extern int yylex_destroy(Context *ctx);
 
-#line 106 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 113 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -137,70 +144,76 @@ enum yysymbol_kind_t
   YYSYMBOL_FLOAT_LITERAL = 4,              /* FLOAT_LITERAL  */
   YYSYMBOL_ID = 5,                         /* ID  */
   YYSYMBOL_STRING_LITERAL = 6,             /* STRING_LITERAL  */
-  YYSYMBOL_KW_IF = 7,                      /* KW_IF  */
-  YYSYMBOL_KW_ELSE = 8,                    /* KW_ELSE  */
-  YYSYMBOL_KW_WHILE = 9,                   /* KW_WHILE  */
-  YYSYMBOL_KW_RETURN = 10,                 /* KW_RETURN  */
-  YYSYMBOL_KW_BREAK = 11,                  /* KW_BREAK  */
-  YYSYMBOL_KW_CONTINUE = 12,               /* KW_CONTINUE  */
-  YYSYMBOL_KW_FOR = 13,                    /* KW_FOR  */
-  YYSYMBOL_KW_INT = 14,                    /* KW_INT  */
-  YYSYMBOL_KW_VOID = 15,                   /* KW_VOID  */
-  YYSYMBOL_KW_CHAR = 16,                   /* KW_CHAR  */
-  YYSYMBOL_KW_FLOAT = 17,                  /* KW_FLOAT  */
-  YYSYMBOL_KW_TRUE = 18,                   /* KW_TRUE  */
-  YYSYMBOL_KW_FALSE = 19,                  /* KW_FALSE  */
-  YYSYMBOL_COMMA = 20,                     /* COMMA  */
-  YYSYMBOL_SEMI = 21,                      /* SEMI  */
-  YYSYMBOL_COLON = 22,                     /* COLON  */
-  YYSYMBOL_L_PAREN = 23,                   /* L_PAREN  */
-  YYSYMBOL_R_PAREN = 24,                   /* R_PAREN  */
-  YYSYMBOL_L_BRACKET = 25,                 /* L_BRACKET  */
-  YYSYMBOL_R_BRACKET = 26,                 /* R_BRACKET  */
-  YYSYMBOL_ASSIGN = 27,                    /* ASSIGN  */
-  YYSYMBOL_OR = 28,                        /* OR  */
-  YYSYMBOL_AND = 29,                       /* AND  */
-  YYSYMBOL_NOT = 30,                       /* NOT  */
-  YYSYMBOL_LESS = 31,                      /* LESS  */
-  YYSYMBOL_LESS_OR_EQUAL = 32,             /* LESS_OR_EQUAL  */
-  YYSYMBOL_EQUAL = 33,                     /* EQUAL  */
-  YYSYMBOL_GREATER = 34,                   /* GREATER  */
-  YYSYMBOL_GREATER_OR_EQUAL = 35,          /* GREATER_OR_EQUAL  */
-  YYSYMBOL_NOT_EQUAL = 36,                 /* NOT_EQUAL  */
-  YYSYMBOL_PLUS = 37,                      /* PLUS  */
-  YYSYMBOL_MINUS = 38,                     /* MINUS  */
-  YYSYMBOL_MULTIPLY = 39,                  /* MULTIPLY  */
-  YYSYMBOL_DIVIDE = 40,                    /* DIVIDE  */
-  YYSYMBOL_MOD = 41,                       /* MOD  */
-  YYSYMBOL_UMINUS = 42,                    /* UMINUS  */
-  YYSYMBOL_YYACCEPT = 43,                  /* $accept  */
-  YYSYMBOL_program = 44,                   /* program  */
-  YYSYMBOL_Functions = 45,                 /* Functions  */
-  YYSYMBOL_Function = 46,                  /* Function  */
-  YYSYMBOL_ParameterList = 47,             /* ParameterList  */
-  YYSYMBOL_Parameters = 48,                /* Parameters  */
-  YYSYMBOL_Parameter = 49,                 /* Parameter  */
-  YYSYMBOL_ArrDeclList = 50,               /* ArrDeclList  */
-  YYSYMBOL_ArrDecls = 51,                  /* ArrDecls  */
-  YYSYMBOL_DeclList = 52,                  /* DeclList  */
-  YYSYMBOL_Declarations = 53,              /* Declarations  */
-  YYSYMBOL_Declaration = 54,               /* Declaration  */
-  YYSYMBOL_IDs = 55,                       /* IDs  */
-  YYSYMBOL_Type = 56,                      /* Type  */
-  YYSYMBOL_StatementList = 57,             /* StatementList  */
-  YYSYMBOL_Statements = 58,                /* Statements  */
-  YYSYMBOL_Statement = 59,                 /* Statement  */
-  YYSYMBOL_CompoundStatement = 60,         /* CompoundStatement  */
-  YYSYMBOL_Simple = 61,                    /* Simple  */
-  YYSYMBOL_If = 62,                        /* If  */
-  YYSYMBOL_ElseOrNot = 63,                 /* ElseOrNot  */
-  YYSYMBOL_While = 64,                     /* While  */
-  YYSYMBOL_For = 65,                       /* For  */
-  YYSYMBOL_Return = 66,                    /* Return  */
-  YYSYMBOL_Break = 67,                     /* Break  */
-  YYSYMBOL_Continue = 68,                  /* Continue  */
-  YYSYMBOL_Expression = 69,                /* Expression  */
-  YYSYMBOL_Epsilon = 70                    /* Epsilon  */
+  YYSYMBOL_CHAR_LITERAL = 7,               /* CHAR_LITERAL  */
+  YYSYMBOL_KW_IF = 8,                      /* KW_IF  */
+  YYSYMBOL_KW_ELSE = 9,                    /* KW_ELSE  */
+  YYSYMBOL_KW_WHILE = 10,                  /* KW_WHILE  */
+  YYSYMBOL_KW_RETURN = 11,                 /* KW_RETURN  */
+  YYSYMBOL_KW_BREAK = 12,                  /* KW_BREAK  */
+  YYSYMBOL_KW_CONTINUE = 13,               /* KW_CONTINUE  */
+  YYSYMBOL_KW_FOR = 14,                    /* KW_FOR  */
+  YYSYMBOL_KW_INT = 15,                    /* KW_INT  */
+  YYSYMBOL_KW_VOID = 16,                   /* KW_VOID  */
+  YYSYMBOL_KW_CHAR = 17,                   /* KW_CHAR  */
+  YYSYMBOL_KW_FLOAT = 18,                  /* KW_FLOAT  */
+  YYSYMBOL_KW_TRUE = 19,                   /* KW_TRUE  */
+  YYSYMBOL_KW_FALSE = 20,                  /* KW_FALSE  */
+  YYSYMBOL_COMMA = 21,                     /* COMMA  */
+  YYSYMBOL_SEMI = 22,                      /* SEMI  */
+  YYSYMBOL_COLON = 23,                     /* COLON  */
+  YYSYMBOL_L_PAREN = 24,                   /* L_PAREN  */
+  YYSYMBOL_R_PAREN = 25,                   /* R_PAREN  */
+  YYSYMBOL_L_BRACKET = 26,                 /* L_BRACKET  */
+  YYSYMBOL_R_BRACKET = 27,                 /* R_BRACKET  */
+  YYSYMBOL_ASSIGN = 28,                    /* ASSIGN  */
+  YYSYMBOL_OR = 29,                        /* OR  */
+  YYSYMBOL_AND = 30,                       /* AND  */
+  YYSYMBOL_NOT = 31,                       /* NOT  */
+  YYSYMBOL_LESS = 32,                      /* LESS  */
+  YYSYMBOL_LESS_OR_EQUAL = 33,             /* LESS_OR_EQUAL  */
+  YYSYMBOL_EQUAL = 34,                     /* EQUAL  */
+  YYSYMBOL_GREATER = 35,                   /* GREATER  */
+  YYSYMBOL_GREATER_OR_EQUAL = 36,          /* GREATER_OR_EQUAL  */
+  YYSYMBOL_NOT_EQUAL = 37,                 /* NOT_EQUAL  */
+  YYSYMBOL_PLUS = 38,                      /* PLUS  */
+  YYSYMBOL_MINUS = 39,                     /* MINUS  */
+  YYSYMBOL_MULTIPLY = 40,                  /* MULTIPLY  */
+  YYSYMBOL_DIVIDE = 41,                    /* DIVIDE  */
+  YYSYMBOL_MOD = 42,                       /* MOD  */
+  YYSYMBOL_UMINUS = 43,                    /* UMINUS  */
+  YYSYMBOL_YYACCEPT = 44,                  /* $accept  */
+  YYSYMBOL_program = 45,                   /* program  */
+  YYSYMBOL_Functions = 46,                 /* Functions  */
+  YYSYMBOL_Function = 47,                  /* Function  */
+  YYSYMBOL_ParameterList = 48,             /* ParameterList  */
+  YYSYMBOL_Parameters = 49,                /* Parameters  */
+  YYSYMBOL_Parameter = 50,                 /* Parameter  */
+  YYSYMBOL_ArrDeclList = 51,               /* ArrDeclList  */
+  YYSYMBOL_ArrDecls = 52,                  /* ArrDecls  */
+  YYSYMBOL_DeclList = 53,                  /* DeclList  */
+  YYSYMBOL_Declarations = 54,              /* Declarations  */
+  YYSYMBOL_Declaration = 55,               /* Declaration  */
+  YYSYMBOL_IDs = 56,                       /* IDs  */
+  YYSYMBOL_ASSIGNorNot = 57,               /* ASSIGNorNot  */
+  YYSYMBOL_Type = 58,                      /* Type  */
+  YYSYMBOL_Constant = 59,                  /* Constant  */
+  YYSYMBOL_StatementList = 60,             /* StatementList  */
+  YYSYMBOL_Statements = 61,                /* Statements  */
+  YYSYMBOL_Statement = 62,                 /* Statement  */
+  YYSYMBOL_CompoundStatement = 63,         /* CompoundStatement  */
+  YYSYMBOL_Simple = 64,                    /* Simple  */
+  YYSYMBOL_If = 65,                        /* If  */
+  YYSYMBOL_ElseOrNot = 66,                 /* ElseOrNot  */
+  YYSYMBOL_While = 67,                     /* While  */
+  YYSYMBOL_For = 68,                       /* For  */
+  YYSYMBOL_Return = 69,                    /* Return  */
+  YYSYMBOL_Break = 70,                     /* Break  */
+  YYSYMBOL_Continue = 71,                  /* Continue  */
+  YYSYMBOL_FuncInvocation = 72,            /* FuncInvocation  */
+  YYSYMBOL_ArgumentList = 73,              /* ArgumentList  */
+  YYSYMBOL_Arguments = 74,                 /* Arguments  */
+  YYSYMBOL_Expression = 75,                /* Expression  */
+  YYSYMBOL_Epsilon = 76                    /* Epsilon  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -317,7 +330,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -531,19 +544,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  9
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   193
+#define YYLAST   249
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  43
+#define YYNTOKENS  44
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  28
+#define YYNNTS  33
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  65
+#define YYNRULES  78
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  124
+#define YYNSTATES  146
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   297
+#define YYMAXUTOK   298
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -586,20 +599,21 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42
+      35,    36,    37,    38,    39,    40,    41,    42,    43
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   110,   110,   118,   124,   131,   142,   146,   152,   158,
-     165,   169,   171,   174,   176,   180,   184,   190,   196,   203,
-     209,   211,   215,   217,   219,   221,   226,   230,   233,   235,
-     238,   240,   242,   244,   246,   248,   250,   252,   256,   265,
-     269,   273,   275,   278,   281,   284,   287,   290,   295,   297,
-     299,   301,   303,   305,   307,   309,   311,   313,   315,   317,
-     319,   321,   323,   325,   327,   333
+       0,   144,   144,   152,   158,   165,   180,   184,   190,   196,
+     203,   211,   215,   222,   226,   233,   237,   243,   249,   256,
+     267,   276,   285,   289,   294,   298,   302,   306,   312,   317,
+     322,   330,   334,   339,   345,   351,   355,   359,   361,   363,
+     367,   375,   377,   381,   385,   389,   397,   401,   403,   406,
+     410,   414,   421,   427,   434,   437,   441,   446,   452,   459,
+     463,   465,   467,   469,   471,   473,   475,   477,   479,   481,
+     483,   485,   487,   489,   491,   493,   495,   497,   503
 };
 #endif
 
@@ -616,18 +630,19 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "INTEGER_LITERAL",
-  "FLOAT_LITERAL", "ID", "STRING_LITERAL", "KW_IF", "KW_ELSE", "KW_WHILE",
-  "KW_RETURN", "KW_BREAK", "KW_CONTINUE", "KW_FOR", "KW_INT", "KW_VOID",
-  "KW_CHAR", "KW_FLOAT", "KW_TRUE", "KW_FALSE", "COMMA", "SEMI", "COLON",
-  "L_PAREN", "R_PAREN", "L_BRACKET", "R_BRACKET", "ASSIGN", "OR", "AND",
-  "NOT", "LESS", "LESS_OR_EQUAL", "EQUAL", "GREATER", "GREATER_OR_EQUAL",
-  "NOT_EQUAL", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MOD", "UMINUS",
-  "$accept", "program", "Functions", "Function", "ParameterList",
-  "Parameters", "Parameter", "ArrDeclList", "ArrDecls", "DeclList",
-  "Declarations", "Declaration", "IDs", "Type", "StatementList",
-  "Statements", "Statement", "CompoundStatement", "Simple", "If",
-  "ElseOrNot", "While", "For", "Return", "Break", "Continue", "Expression",
-  "Epsilon", YY_NULLPTR
+  "FLOAT_LITERAL", "ID", "STRING_LITERAL", "CHAR_LITERAL", "KW_IF",
+  "KW_ELSE", "KW_WHILE", "KW_RETURN", "KW_BREAK", "KW_CONTINUE", "KW_FOR",
+  "KW_INT", "KW_VOID", "KW_CHAR", "KW_FLOAT", "KW_TRUE", "KW_FALSE",
+  "COMMA", "SEMI", "COLON", "L_PAREN", "R_PAREN", "L_BRACKET", "R_BRACKET",
+  "ASSIGN", "OR", "AND", "NOT", "LESS", "LESS_OR_EQUAL", "EQUAL",
+  "GREATER", "GREATER_OR_EQUAL", "NOT_EQUAL", "PLUS", "MINUS", "MULTIPLY",
+  "DIVIDE", "MOD", "UMINUS", "$accept", "program", "Functions", "Function",
+  "ParameterList", "Parameters", "Parameter", "ArrDeclList", "ArrDecls",
+  "DeclList", "Declarations", "Declaration", "IDs", "ASSIGNorNot", "Type",
+  "Constant", "StatementList", "Statements", "Statement",
+  "CompoundStatement", "Simple", "If", "ElseOrNot", "While", "For",
+  "Return", "Break", "Continue", "FuncInvocation", "ArgumentList",
+  "Arguments", "Expression", "Epsilon", YY_NULLPTR
 };
 
 static const char *
@@ -637,7 +652,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-67)
+#define YYPACT_NINF (-74)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -651,19 +666,21 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-       4,   -67,   -67,   -67,   -67,    14,     4,   -67,    11,   -67,
-     -67,     1,     4,    18,     5,   -67,    36,   -67,    21,     4,
-      20,     4,   -67,   -67,    45,   -67,    24,   -67,   148,     4,
-     -67,    46,   -67,    26,    69,    54,    59,    17,    73,    74,
-      75,   -67,    72,   148,   -67,   -67,   -67,   -67,   -67,   -67,
-     -67,   -67,   -67,   -67,   -67,    20,    -9,   -67,    71,    17,
-      17,   -67,    17,    17,    17,    25,   -67,   -67,    79,   -67,
-     -67,   -67,    97,   -67,   -67,    77,    95,   113,   152,   -67,
-     -67,    17,    17,    17,    17,    17,    17,    17,    17,    17,
-      17,    17,    17,    17,    17,    20,    21,    21,   -67,   141,
-     152,    30,    30,    30,    30,    30,    30,    35,    35,   -67,
-     -67,   -67,    52,   -67,    99,   -67,    79,    21,   -67,   -67,
-      96,   -67,    21,   -67
+     134,   -74,   -74,   -74,   -74,     3,   134,   -74,     9,   -74,
+     -74,    -9,   134,    25,    13,   -74,    51,   -74,    33,   134,
+      34,   134,   -74,   -74,    62,   -74,    43,   -74,   133,   134,
+     -74,    68,   -74,    48,    73,    75,    53,    76,    27,    93,
+      94,    97,   -74,    98,   133,   -74,   -74,   -74,   -74,   -74,
+     -74,   -74,   -74,   -74,   -74,   -74,    34,   -13,   -74,    91,
+      27,    27,    27,   -74,   -74,    44,   -74,    27,    27,    27,
+     -74,   -74,    49,   -74,   -74,    50,   -74,   -74,   111,   114,
+     -74,   -74,    72,   129,   147,    27,   -74,   165,   -14,   -74,
+     -74,    27,    27,    27,    27,    27,    27,    27,    27,    27,
+      27,    27,    27,    27,    27,    27,   -74,   -74,    34,   -74,
+      33,    33,   115,   121,   194,   -74,   -74,   207,   -14,    57,
+      57,    57,    57,    57,    57,    12,    12,   -74,   -74,   -74,
+      95,   194,   -74,   139,   -74,   -74,    27,    50,    33,   -74,
+     -74,   194,   128,   -74,    33,   -74
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -671,117 +688,134 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,    22,    23,    24,    25,     0,     2,     3,     0,     1,
-       4,     0,    65,     0,     7,     8,     0,     6,     0,     0,
-      65,    65,     5,     9,     0,    10,    12,    11,    65,    16,
+       0,    24,    25,    26,    27,     0,     2,     3,     0,     1,
+       4,     0,    78,     0,     7,     8,     0,     6,     0,     0,
+      78,    78,     5,     9,     0,    10,    12,    11,    78,    16,
       17,     0,    15,     0,     0,     0,     0,     0,     0,     0,
-       0,    39,     0,    27,    28,    30,    31,    32,    33,    34,
-      35,    36,    37,    26,    18,    65,     0,    13,     0,     0,
-       0,    48,     0,     0,     0,     0,    46,    47,     0,    38,
-      29,    20,     0,    19,    14,     0,     0,     0,    62,    63,
-      45,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    65,     0,     0,    64,    61,
-      60,    54,    55,    58,    56,    57,    59,    49,    50,    51,
-      52,    53,     0,    21,    65,    43,     0,     0,    40,    42,
-       0,    41,     0,    44
+       0,     0,    45,     0,    32,    33,    35,    36,    37,    38,
+      39,    42,    43,    44,    31,    18,    78,     0,    13,     0,
+       0,     0,     0,    28,    29,    78,    30,     0,     0,     0,
+      59,    61,     0,    52,    53,     0,    40,    34,    78,     0,
+      19,    14,     0,     0,     0,    78,    60,     0,    75,    76,
+      51,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    20,    22,    78,    41,
+       0,     0,     0,    56,    57,    55,    77,    74,    73,    67,
+      68,    71,    69,    70,    72,    62,    63,    64,    65,    66,
+       0,    23,    21,    78,    49,    54,     0,     0,     0,    46,
+      48,    58,     0,    47,     0,    50
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int8 yypgoto[] =
+static const yytype_int16 yypgoto[] =
 {
-     -67,   -67,   -67,   115,   -67,   -67,   103,   -52,   -67,   -67,
-     -67,   109,   -67,    -6,   -67,   -67,    82,   -18,   -66,   -67,
-     -67,   -67,   -67,   -67,   -67,   -67,   -55,   -11
+     -74,   -74,   -74,   150,   -74,   -74,   141,   -49,   -74,   -74,
+     -74,   144,   -74,   -74,   196,   -74,   -74,   -74,   130,   -18,
+     -73,   -74,   -74,   -74,   -74,   -74,   -74,   -74,   -74,   -74,
+     -74,   -56,   -11
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_uint8 yydefgoto[] =
 {
        0,     5,     6,     7,    13,    14,    15,    25,    26,    28,
-      29,    30,    56,     8,    42,    43,    44,    45,    46,    47,
-     118,    48,    49,    50,    51,    52,    65,    27
+      29,    30,    57,   106,     8,    70,    43,    44,    45,    46,
+      47,    48,   139,    49,    50,    51,    52,    53,    71,   112,
+     113,    72,    27
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule whose
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_uint8 yytable[] =
 {
-      22,    17,    94,    71,    75,    76,    16,    77,    78,    79,
-      32,    72,    73,    16,     9,    31,    11,    53,     1,     2,
-       3,     4,    61,    31,    12,    19,    99,   100,   101,   102,
-     103,   104,   105,   106,   107,   108,   109,   110,   111,   112,
-      62,    20,    18,   113,    21,    24,    80,    63,    33,    34,
-     120,    55,    57,    81,    82,    64,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,    92,    93,    89,    90,    91,
-      92,    93,    58,   116,    91,    92,    93,    59,   114,   115,
-      81,    82,    60,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,    92,    93,    66,    67,    69,    74,    68,   121,
-      41,    96,    95,   119,   123,    81,    82,   117,    83,    84,
-      85,    86,    87,    88,    89,    90,    91,    92,    93,    97,
-     122,    10,    23,    81,    82,    70,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,    92,    93,    98,    54,     0,
-       0,    81,    82,     0,    83,    84,    85,    86,    87,    88,
-      89,    90,    91,    92,    93,    35,     0,    36,    37,    38,
-      39,    40,     0,     0,     0,     0,     0,     0,     0,    41,
-      82,    21,    83,    84,    85,    86,    87,    88,    89,    90,
-      91,    92,    93,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,    92,    93
+      22,    17,   104,     9,    82,    83,    84,    78,    79,    80,
+      32,    87,    88,    89,    11,    12,    86,    54,    93,    94,
+      95,    96,    97,    98,    99,   100,   101,   102,   103,   114,
+      63,    64,    65,    66,    19,   117,   118,   119,   120,   121,
+     122,   123,   124,   125,   126,   127,   128,   129,   130,   131,
+      18,    67,   101,   102,   103,    35,    20,    21,    68,   132,
+      24,    38,    39,    40,   142,    33,    69,   107,    85,    34,
+      24,    90,    42,    56,   115,    58,    59,    61,    91,    92,
+     141,    93,    94,    95,    96,    97,    98,    99,   100,   101,
+     102,   103,   133,   134,   109,    99,   100,   101,   102,   103,
+      62,    91,    92,    60,    93,    94,    95,    96,    97,    98,
+      99,   100,   101,   102,   103,    73,    74,   137,    81,   108,
+     143,    75,   140,    76,    91,    92,   145,    93,    94,    95,
+      96,    97,    98,    99,   100,   101,   102,   103,    35,   105,
+     135,    36,   136,    37,    38,    39,    40,    41,   138,     1,
+       2,     3,     4,   144,   110,    42,    10,    21,    91,    92,
+      23,    93,    94,    95,    96,    97,    98,    99,   100,   101,
+     102,   103,   111,    55,    77,     0,    91,    92,     0,    93,
+      94,    95,    96,    97,    98,    99,   100,   101,   102,   103,
+     116,     0,     0,     0,    91,    92,     0,    93,    94,    95,
+      96,    97,    98,    99,   100,   101,   102,   103,    16,     0,
+       0,     0,     0,     0,     0,    16,     0,    31,     0,     0,
+       0,     0,     0,    91,    92,    31,    93,    94,    95,    96,
+      97,    98,    99,   100,   101,   102,   103,    92,     0,    93,
+      94,    95,    96,    97,    98,    99,   100,   101,   102,   103
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-      18,    12,    68,    55,    59,    60,    12,    62,    63,    64,
-      21,    20,    21,    19,     0,    21,     5,    28,    14,    15,
-      16,    17,     5,    29,    23,    20,    81,    82,    83,    84,
-      85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
-      23,     5,    24,    95,    23,    25,    21,    30,     3,    25,
-     116,     5,    26,    28,    29,    38,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    37,    38,    39,
-      40,    41,     3,    21,    39,    40,    41,    23,    96,    97,
-      28,    29,    23,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    21,    21,    24,    26,    23,   117,
-      21,    24,     5,   114,   122,    28,    29,     8,    31,    32,
-      33,    34,    35,    36,    37,    38,    39,    40,    41,    24,
-      24,     6,    19,    28,    29,    43,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    24,    29,    -1,
-      -1,    28,    29,    -1,    31,    32,    33,    34,    35,    36,
-      37,    38,    39,    40,    41,     7,    -1,     9,    10,    11,
-      12,    13,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    21,
-      29,    23,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41
+      18,    12,    75,     0,    60,    61,    62,    56,    21,    22,
+      21,    67,    68,    69,     5,    24,    65,    28,    32,    33,
+      34,    35,    36,    37,    38,    39,    40,    41,    42,    85,
+       3,     4,     5,     6,    21,    91,    92,    93,    94,    95,
+      96,    97,    98,    99,   100,   101,   102,   103,   104,   105,
+      25,    24,    40,    41,    42,     5,     5,    24,    31,   108,
+      26,    11,    12,    13,   137,     3,    39,    78,    24,    26,
+      26,    22,    22,     5,    85,    27,     3,    24,    29,    30,
+     136,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,   110,   111,    22,    38,    39,    40,    41,    42,
+      24,    29,    30,    28,    32,    33,    34,    35,    36,    37,
+      38,    39,    40,    41,    42,    22,    22,    22,    27,     5,
+     138,    24,   133,    25,    29,    30,   144,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,     5,    28,
+      25,     8,    21,    10,    11,    12,    13,    14,     9,    15,
+      16,    17,    18,    25,    25,    22,     6,    24,    29,    30,
+      19,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    25,    29,    44,    -1,    29,    30,    -1,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
+      25,    -1,    -1,    -1,    29,    30,    -1,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    12,    -1,
+      -1,    -1,    -1,    -1,    -1,    19,    -1,    21,    -1,    -1,
+      -1,    -1,    -1,    29,    30,    29,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    30,    -1,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    14,    15,    16,    17,    44,    45,    46,    56,     0,
-      46,     5,    23,    47,    48,    49,    56,    70,    24,    20,
-       5,    23,    60,    49,    25,    50,    51,    70,    52,    53,
-      54,    56,    70,     3,    25,     7,     9,    10,    11,    12,
-      13,    21,    57,    58,    59,    60,    61,    62,    64,    65,
-      66,    67,    68,    70,    54,     5,    55,    26,     3,    23,
-      23,     5,    23,    30,    38,    69,    21,    21,    23,    24,
-      59,    50,    20,    21,    26,    69,    69,    69,    69,    69,
-      21,    28,    29,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    61,     5,    24,    24,    24,    69,
-      69,    69,    69,    69,    69,    69,    69,    69,    69,    69,
-      69,    69,    69,    50,    60,    60,    21,     8,    63,    70,
-      61,    60,    24,    60
+       0,    15,    16,    17,    18,    45,    46,    47,    58,     0,
+      47,     5,    24,    48,    49,    50,    58,    76,    25,    21,
+       5,    24,    63,    50,    26,    51,    52,    76,    53,    54,
+      55,    58,    76,     3,    26,     5,     8,    10,    11,    12,
+      13,    14,    22,    60,    61,    62,    63,    64,    65,    67,
+      68,    69,    70,    71,    76,    55,     5,    56,    27,     3,
+      28,    24,    24,     3,     4,     5,     6,    24,    31,    39,
+      59,    72,    75,    22,    22,    24,    25,    62,    51,    21,
+      22,    27,    75,    75,    75,    24,    51,    75,    75,    75,
+      22,    29,    30,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    64,    28,    57,    76,     5,    22,
+      25,    25,    73,    74,    75,    76,    25,    75,    75,    75,
+      75,    75,    75,    75,    75,    75,    75,    75,    75,    75,
+      75,    75,    51,    63,    63,    25,    21,    22,     9,    66,
+      76,    75,    64,    63,    25,    63
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    43,    44,    45,    45,    46,    47,    47,    48,    48,
-      49,    50,    50,    51,    51,    52,    52,    53,    53,    54,
-      55,    55,    56,    56,    56,    56,    57,    57,    58,    58,
-      59,    59,    59,    59,    59,    59,    59,    59,    60,    61,
-      62,    63,    63,    64,    65,    66,    67,    68,    69,    69,
-      69,    69,    69,    69,    69,    69,    69,    69,    69,    69,
-      69,    69,    69,    69,    69,    70
+       0,    44,    45,    46,    46,    47,    48,    48,    49,    49,
+      50,    51,    51,    52,    52,    53,    53,    54,    54,    55,
+      56,    56,    57,    57,    58,    58,    58,    58,    59,    59,
+      59,    60,    60,    61,    61,    62,    62,    62,    62,    62,
+      63,    64,    64,    64,    64,    64,    65,    66,    66,    67,
+      68,    69,    70,    71,    72,    73,    73,    74,    74,    75,
+      75,    75,    75,    75,    75,    75,    75,    75,    75,    75,
+      75,    75,    75,    75,    75,    75,    75,    75,    76
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -789,11 +823,12 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     1,     2,     6,     1,     1,     1,     3,
        3,     1,     1,     3,     4,     1,     1,     1,     2,     3,
-       2,     4,     1,     1,     1,     1,     1,     1,     1,     2,
-       1,     1,     1,     1,     1,     1,     1,     1,     4,     1,
-       6,     2,     1,     5,     8,     3,     2,     2,     1,     3,
-       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       3,     3,     2,     2,     3,     0
+       3,     4,     1,     2,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     2,     1,     1,     1,     1,     1,
+       4,     4,     1,     1,     1,     1,     6,     2,     1,     5,
+       8,     3,     2,     2,     4,     1,     1,     1,     3,     1,
+       2,     1,     3,     3,     3,     3,     3,     3,     3,     3,
+       3,     3,     3,     3,     3,     2,     2,     3,     0
 };
 
 
@@ -1372,146 +1407,440 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: Functions  */
-#line 110 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 144 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
               {
         std::unique_ptr<std::vector<std::unique_ptr<FunctionDecl>>> functions((yyvsp[0].functions));
-        ctx->root = std::make_unique<Program>((yylsp[0]).first_line, (yylsp[0]).first_column, std::move((yyvsp[0].functions))); 
-        // llvm::errs() << "?";
+        ctx->root = std::make_unique<Program>((yylsp[0]).first_line, (yylsp[0]).first_column, std::move(functions)); 
+        // llvm::outs() << *(ctx->root->functions)[0]->getName();
     }
-#line 1382 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1417 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 3: /* Functions: Function  */
-#line 118 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 152 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
              {
         (yyval.functions) = new std::vector<std::unique_ptr<FunctionDecl>>();
         std::unique_ptr<FunctionDecl> func((yyvsp[0].function));
         (yyval.functions)->push_back(std::move(func));
     }
-#line 1392 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1427 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 4: /* Functions: Functions Function  */
-#line 124 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 158 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                        {
         std::unique_ptr<FunctionDecl> func((yyvsp[0].function));
         (yyvsp[-1].functions)->push_back(std::move(func));
     }
-#line 1401 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1436 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 5: /* Function: Type ID L_PAREN ParameterList R_PAREN CompoundStatement  */
-#line 131 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 165 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                                                             {
         // std::string name = ;
         std::unique_ptr<DeclStmt> p_decl((yyvsp[-2].decl));
         std::unique_ptr<CompoundStmt> p_comstmt((yyvsp[0].compound_stmt));
+        std::unique_ptr<Type> type = std::make_unique<Type>();
+        type->setKind(*(yyvsp[-5].type_kind));
         (yyval.function) = new FunctionDecl(
             (yylsp[-5]).first_line, (yylsp[-5]).first_column,
-            *(yyvsp[-4].identifier), std::move(p_decl), std::move(p_comstmt));
+            *(yyvsp[-4].identifier), std::move(p_decl), std::move(p_comstmt),
+            std::move(type));
+        // llvm::errs() << "Function: " << $$->getName() << '\n';
     }
-#line 1414 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1453 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 6: /* ParameterList: Epsilon  */
-#line 142 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 180 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
             {
         (yyval.decl) = nullptr;
     }
-#line 1422 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1461 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 7: /* ParameterList: Parameters  */
-#line 146 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 184 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                {
         (yyval.decl) = (yyvsp[0].decl);
     }
-#line 1430 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1469 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 8: /* Parameters: Parameter  */
-#line 152 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 190 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
               {
         std::unique_ptr<VarDecl> tmp((yyvsp[0].variable));
         (yyval.decl) = new DeclStmt((yylsp[0]).first_line, (yylsp[0]).first_column);
         (yyval.decl)->addVarDecl(std::move(tmp));
     }
-#line 1440 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1479 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 9: /* Parameters: Parameters COMMA Parameter  */
-#line 158 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 196 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                                {
         std::unique_ptr<VarDecl> tmp((yyvsp[0].variable));
         (yyval.decl)->addVarDecl(std::move(tmp));
     }
-#line 1449 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1488 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 10: /* Parameter: Type ID ArrDeclList  */
+#line 203 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                        {
+        (yyval.variable) = new VarDecl((yylsp[-2]).first_line, (yylsp[-2]).first_column, *(yyvsp[-1].identifier));
+        (yyvsp[0].type)->setKind(*(yyvsp[-2].type_kind));
+        (yyval.variable)->setType(std::move(std::unique_ptr<Type>((yyvsp[0].type))));
+    }
+#line 1498 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 11: /* ArrDeclList: Epsilon  */
+#line 211 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+            {
+        (yyval.type) = new Type();
+    }
+#line 1506 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 12: /* ArrDeclList: ArrDecls  */
+#line 215 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+             {
+        (yyval.type) = (yyvsp[0].type);
+    }
+#line 1514 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 13: /* ArrDecls: L_BRACKET INTEGER_LITERAL R_BRACKET  */
+#line 222 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                                        {
+        (yyval.type) = new Type();
+    }
+#line 1522 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 14: /* ArrDecls: ArrDecls L_BRACKET INTEGER_LITERAL R_BRACKET  */
+#line 226 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                                                 {
+        (yyvsp[-3].type)->addDimension((yyvsp[-1].integer_literal));
+        (yyval.type) = (yyvsp[-3].type);
+    }
+#line 1531 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 15: /* DeclList: Epsilon  */
-#line 180 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 233 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
             {
         (yyval.decls) = nullptr;
     }
-#line 1457 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1539 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 16: /* DeclList: Declarations  */
-#line 184 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 237 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                  {
         (yyval.decls) = (yyvsp[0].decls);
     }
-#line 1465 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1547 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 17: /* Declarations: Declaration  */
-#line 190 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 243 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                 {
         (yyval.decls) = new std::vector<std::unique_ptr<DeclStmt>>();
         std::unique_ptr<DeclStmt> decl((yyvsp[0].decl));
         (yyval.decls)->push_back(std::move(decl));
     }
-#line 1475 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1557 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 18: /* Declarations: Declarations Declaration  */
-#line 196 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 249 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                              {
         std::unique_ptr<DeclStmt> decl((yyvsp[0].decl));
         (yyvsp[-1].decls)->push_back(std::move(decl));
     }
-#line 1484 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1566 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
   case 19: /* Declaration: Type IDs SEMI  */
-#line 203 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 256 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                   {
-        
+        (yyval.decl) = new DeclStmt((yylsp[-2]).first_line, (yylsp[-2]).first_column);
+        for (auto &var: *(yyvsp[-1].vars)) {
+            std::unique_ptr<Type> &tp_ptr = var->getType();
+            tp_ptr->setKind(*(yyvsp[-2].type_kind));
+            (yyval.decl)->addVarDecl(std::move(var));
+        }
     }
-#line 1492 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1579 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
-  case 26: /* StatementList: Epsilon  */
-#line 226 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+  case 20: /* IDs: ID ArrDeclList ASSIGNorNot  */
+#line 267 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                              {
+        (yyval.vars) = new std::vector<std::unique_ptr<VarDecl>>;
+        std::unique_ptr<Expression> expr((yyvsp[0].expr));
+        auto tmp = std::make_unique<VarDecl>((yylsp[-2]).first_line, (yylsp[-2]).first_column, *(yyvsp[-2].identifier), std::move(expr));
+        std::unique_ptr<Type> tp((yyvsp[-1].type));
+        tmp->setType(std::move(tp));
+        (yyval.vars)->push_back(std::move(tmp));
+    }
+#line 1592 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 21: /* IDs: IDs COMMA ID ArrDeclList  */
+#line 276 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                             {
+        auto tmp = std::make_unique<VarDecl>((yylsp[-1]).first_line, (yylsp[-1]).first_column, *(yyvsp[-1].identifier));
+        std::unique_ptr<Type> tp((yyvsp[0].type));
+        tmp->setType(std::move(tp));
+        (yyval.vars)->push_back(std::move(tmp));
+    }
+#line 1603 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 22: /* ASSIGNorNot: Epsilon  */
+#line 285 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+            {
+        (yyval.expr) = nullptr;
+    }
+#line 1611 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 23: /* ASSIGNorNot: ASSIGN Expression  */
+#line 289 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                      {
+        (yyval.expr) = (yyvsp[0].expr);
+    }
+#line 1619 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 24: /* Type: KW_INT  */
+#line 294 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+           {
+        (yyval.type_kind) = new Type::Kind(Type::Kind::INT);
+    }
+#line 1627 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 25: /* Type: KW_VOID  */
+#line 298 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+            {
+        (yyval.type_kind) = new Type::Kind(Type::Kind::VOID);
+    }
+#line 1635 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 26: /* Type: KW_CHAR  */
+#line 302 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+            {
+        (yyval.type_kind) = new Type::Kind(Type::Kind::CHAR);
+    }
+#line 1643 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 27: /* Type: KW_FLOAT  */
+#line 306 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+             {
+        (yyval.type_kind) = new Type::Kind(Type::Kind::FLOAT);
+    }
+#line 1651 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 28: /* Constant: INTEGER_LITERAL  */
+#line 312 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                    {
+        std::unique_ptr<Constant::ValueType> value = std::make_unique<Constant::ValueType>((yyvsp[0].integer_literal));
+        (yyval.constant) = new Constant((yylsp[0]).first_line, (yylsp[0]).first_column, std::move(value));
+    }
+#line 1660 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 29: /* Constant: FLOAT_LITERAL  */
+#line 317 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                  { 
+        std::unique_ptr<Constant::ValueType> value =    std::make_unique<Constant::ValueType>((yyvsp[0].float_literal));
+        (yyval.constant) = new Constant((yylsp[0]).first_line, (yylsp[0]).first_column, std::move(value));
+    }
+#line 1669 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 30: /* Constant: STRING_LITERAL  */
+#line 322 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                   { 
+        std::unique_ptr<Constant::ValueType> value =    std::make_unique<Constant::ValueType>(*(yyvsp[0].string_literal));
+        (yyval.constant) = new Constant((yylsp[0]).first_line, (yylsp[0]).first_column, std::move(value));
+    }
+#line 1678 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 31: /* StatementList: Epsilon  */
+#line 330 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
             {
         (yyval.stmts) = nullptr;
     }
-#line 1500 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1686 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
-  case 38: /* CompoundStatement: L_PAREN DeclList StatementList R_PAREN  */
-#line 256 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+  case 32: /* StatementList: Statements  */
+#line 334 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+               {
+        (yyval.stmts) = (yyvsp[0].stmts);
+    }
+#line 1694 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 33: /* Statements: Statement  */
+#line 339 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+              {
+        (yyval.stmts) = new std::vector<std::unique_ptr<AstNode>>;
+        std::unique_ptr<AstNode> stmt((yyvsp[0].node));
+        (yyval.stmts)->push_back(std::move(stmt));
+    }
+#line 1704 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 34: /* Statements: Statements Statement  */
+#line 345 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                         {
+        std::unique_ptr<AstNode> stmt((yyvsp[0].node));
+        (yyval.stmts)->push_back(std::move(stmt));
+    }
+#line 1713 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 35: /* Statement: CompoundStatement  */
+#line 351 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                      {
+        (yyval.node) = (yyvsp[0].compound_stmt);
+    }
+#line 1721 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 36: /* Statement: Simple  */
+#line 355 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+           {
+        (yyval.node) = (yyvsp[0].node);
+    }
+#line 1729 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 40: /* CompoundStatement: L_PAREN DeclList StatementList R_PAREN  */
+#line 367 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
                                            {
         std::unique_ptr<std::vector<std::unique_ptr<DeclStmt>>> p_decls((yyvsp[-2].decls));
         std::unique_ptr<std::vector<std::unique_ptr<AstNode>>> p_stmts((yyvsp[-1].stmts));
         (yyval.compound_stmt) = new CompoundStmt((yylsp[-3]).first_line, (yylsp[-3]).first_column, std::move(p_decls), std::move(p_stmts));
-        // llvm::errs() << '?';
     }
-#line 1511 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1739 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 42: /* Simple: Return  */
+#line 377 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+           {
+        (yyval.node) = (yyvsp[0].node);
+    }
+#line 1747 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 43: /* Simple: Break  */
+#line 381 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+          {
+        (yyval.node) = (yyvsp[0].node);
+    }
+#line 1755 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 44: /* Simple: Continue  */
+#line 385 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+             {
+        (yyval.node) = (yyvsp[0].node);
+    }
+#line 1763 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 45: /* Simple: SEMI  */
+#line 389 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+         {
+        (yyval.node) = new NullStmt((yylsp[0]).first_line, (yylsp[0]).first_column);
+    }
+#line 1771 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 51: /* Return: KW_RETURN Expression SEMI  */
+#line 414 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                              {
+        std::unique_ptr<Expression> expr((yyvsp[-1].expr));
+        (yyval.node) = new ReturnStmt((yylsp[-2]).first_line, (yylsp[-2]).first_column, std::move(expr));
+    }
+#line 1780 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 52: /* Break: KW_BREAK SEMI  */
+#line 421 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                  {
+        (yyval.node) = new BreakStmt((yylsp[-1]).first_line, (yylsp[-1]).first_column);
+    }
+#line 1788 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 53: /* Continue: KW_CONTINUE SEMI  */
+#line 427 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                     {
+        (yyval.node) = new ContinueStmt((yylsp[-1]).first_line, (yylsp[-1]).first_column);
+    }
+#line 1796 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 55: /* ArgumentList: Epsilon  */
+#line 437 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+            {
+        (yyval.exprs) = nullptr;
+    }
+#line 1804 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 56: /* ArgumentList: Arguments  */
+#line 441 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+              {
+        (yyval.exprs) = (yyvsp[0].exprs);
+    }
+#line 1812 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 57: /* Arguments: Expression  */
+#line 446 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+               {
+        (yyval.exprs) = new std::vector<std::unique_ptr<Expression>>;
+        std::unique_ptr<Expression> expr((yyvsp[0].expr));
+        (yyval.exprs)->push_back(std::move(expr));
+    }
+#line 1822 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 58: /* Arguments: Arguments COMMA Expression  */
+#line 452 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+                               {
+        (yyval.exprs) = (yyvsp[-2].exprs);
+        std::unique_ptr<Expression> expr((yyvsp[0].expr));
+        (yyval.exprs)->push_back(std::move(expr));
+    }
+#line 1832 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+    break;
+
+  case 59: /* Expression: Constant  */
+#line 459 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+             {
+        (yyval.expr) = (yyvsp[0].constant);   
+    }
+#line 1840 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
     break;
 
 
-#line 1515 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
+#line 1844 "/Users/daidaiso/Project/ntou-compiler-project/build/parser.cpp"
 
       default: break;
     }
@@ -1709,7 +2038,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 335 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
+#line 505 "/Users/daidaiso/Project/ntou-compiler-project/src/parser.y"
 
 
 void yyerror(Context *ctx, const char *msg) {
@@ -1733,4 +2062,3 @@ void yyerror(Context *ctx, const char *msg) {
             line_num, current_line, yytext); */
     exit(-1);
 }
-
