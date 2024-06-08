@@ -1,0 +1,76 @@
+# .github/workflows/release.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '**'  # 當推送到任何分支時觸發
+    tags:
+      - 'v*.*.*'  # 當推送匹配這個模式的標籤時觸發，例如 v1.0.0
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Flex and Bison
+        run: sudo apt-get install -y flex bison
+
+      - name: Set up LLVM
+        run: |
+          sudo apt-get install -y llvm clang
+          export PATH="/usr/lib/llvm-10/bin:$PATH"
+          export CC=clang
+          export CXX=clang++
+
+      - name: Build the project
+        run: make
+
+      - name: Run tests
+        run: make test
+
+  release:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Flex and Bison
+        run: sudo apt-get install -y flex bison
+
+      - name: Set up LLVM
+        run: |
+          sudo apt-get install -y llvm clang
+          export PATH="/usr/lib/llvm-10/bin:$PATH"
+          export CC=clang
+          export CXX=clang++
+
+      - name: Build the project
+        run: make
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: path/to/your/asset.zip
+          asset_name: your-asset.zip
+          asset_content_type: application/zip
