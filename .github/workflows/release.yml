@@ -16,24 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Flex and Bison
-        run: sudo apt-get install -y flex bison
-
-      - name: Set up CMake
-        run: sudo apt-get install -y cmake
-
-      - name: Set up LLVM
+      - name: Install dependencies
         run: |
-          sudo apt-get install -y llvm clang
-          export PATH="/usr/lib/llvm-10/bin:$PATH"
-          export CC=clang
-          export CXX=clang++
+          sudo apt-get update
+          sudo apt-get install -y flex bison cmake llvm clang build-essential libfl-dev
 
       - name: Configure CMake
         run: |
-          export FLEX_PATH=$(which flex)
-          export FL_LIBRARY=$(pkg-config --libs-only-L flex | sed 's/-L//')
-          cmake -S . -B build -DFLEX_EXECUTABLE=$FLEX_PATH -DFL_LIBRARY=$FL_LIBRARY
+          cmake -S . -B build -DFLEX_EXECUTABLE=/usr/bin/flex -DFLEX_INCLUDE_DIR=/usr/include -DFLEX_LIBRARY=/usr/lib/x86_64-linux-gnu/libfl.so
 
       - name: Build the project
         run: cmake --build build
@@ -50,24 +40,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Flex and Bison
-        run: sudo apt-get install -y flex bison
-
-      - name: Set up CMake
-        run: sudo apt-get install -y cmake
-
-      - name: Set up LLVM
+      - name: Install dependencies
         run: |
-          sudo apt-get install -y llvm clang
-          export PATH="/usr/lib/llvm-10/bin:$PATH"
-          export CC=clang
-          export CXX=clang++
+          sudo apt-get update
+          sudo apt-get install -y flex bison cmake llvm clang build-essential libfl-dev
 
       - name: Configure CMake
         run: |
-          export FLEX_PATH=$(which flex)
-          export FL_LIBRARY=$(pkg-config --libs-only-L flex | sed 's/-L//')
-          cmake -S . -B build -DFLEX_EXECUTABLE=$FLEX_PATH -DFL_LIBRARY=$FL_LIBRARY
+          cmake -S . -B build -DFLEX_EXECUTABLE=/usr/bin/flex -DFLEX_INCLUDE_DIR=/usr/include -DFLEX_LIBRARY=/usr/lib/x86_64-linux-gnu/libfl.so
 
       - name: Build the project
         run: cmake --build build
