@@ -27,6 +27,9 @@ public:
   std::unique_ptr<Type> &getType() {
     return type;
   };
+  std::unique_ptr<Expression> &getValue() {
+    return value;
+  }
 
 private:
   std::string                 id;

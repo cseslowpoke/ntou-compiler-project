@@ -13,7 +13,7 @@ public:
           std::unique_ptr<std::vector<std::unique_ptr<Expression>>> args);
   ~FuncInv() = default;
 
-  const std::string &getName() const {
+const std::string &getName() const {
     return name;
   }
   // const std::vector<std::unique_ptr<Expression>>& getArgs() const { return args; }

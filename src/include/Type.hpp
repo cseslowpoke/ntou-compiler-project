@@ -1,6 +1,7 @@
 #ifndef TYPE_HPP
 #define TYPE_HPP
 
+#include "llvm/Support/raw_ostream.h"
 #include <string>
 #include <vector>
 class Type {
@@ -12,12 +13,19 @@ public:
     return kind;
   };
   void setKind(Kind _kind) {
-    kind = _kind;
+    kind   = _kind;
+    dim_1d = 1;
   };
-  // int getDimension() {return dimension;};
+  int &getDim1d() {
+    return dim_1d;
+  }
+  const std::vector<int> &getArrayDim() {
+    return arraydim;
+  }
   // void setDimension(int _dimension) {dimension = _dimension;};
   void addDimension(int dim) {
     arraydim.push_back(dim);
+    dim_1d *= dim;
   };
   std::string getName() const {
     std::string name = "";
@@ -34,7 +42,7 @@ public:
       case Kind::VOID:
         name = "void";
         break;
-      default:
+      case Kind::None:
         break;
     }
     for (int dim : arraydim) {
@@ -43,12 +51,16 @@ public:
     return name;
   }
   friend bool operator==(const Type &lhs, const Type &rhs) {
-    return lhs.kind == rhs.kind;
+    return lhs.kind == rhs.kind && lhs.arraydim.size() == rhs.arraydim.size();
   }
+  friend bool operator!=(const Type &lhs, const Type &rhs) {
+    return !(lhs == rhs);
+  }
+  std::vector<int> arraydim;
 
 private:
-  Kind             kind;
-  std::vector<int> arraydim;
+  Kind kind;
+  int  dim_1d; // for array
 };
 
 #endif // TYPE_HPP

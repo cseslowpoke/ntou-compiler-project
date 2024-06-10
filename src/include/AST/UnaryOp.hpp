@@ -17,7 +17,10 @@ public:
   };
   void visitChildren(ASTNodeVisitor &v) override;
 
-  const std::string getOpName() const;
+  const std::string                  getOpName() const;
+  const std::unique_ptr<Expression> &getExpr() {
+    return expr;
+  }
 
 private:
   const Op                          op;

@@ -1,42 +1,56 @@
 #include "AST/BinaryOp.hpp"
-
 BinaryOp::BinaryOp(const uint32_t line, const uint32_t col, Op p_op,
                    std::unique_ptr<Expression> p_left, std::unique_ptr<Expression> p_right)
-  : Expression{line, col}, op(p_op), lhs(std::move(p_left)), rhs(std::move(p_right)) {}
+  : Expression{line, col, std::make_unique<Type>()}, op(p_op), lhs(std::move(p_left)),
+    rhs(std::move(p_right)) {}
 
 void BinaryOp::visitChildren(ASTNodeVisitor &p_visitor) {
   lhs->accept(p_visitor);
   rhs->accept(p_visitor);
 }
-
-const std::string BinaryOp::getOpName() const {
+#include "llvm/Support/raw_ostream.h"
+std::string BinaryOp::getName() const {
+  std::string ret = type->getName() + " ";
   switch (op) {
     case Op::ADD:
-      return "+";
+      ret += "+";
+      break;
     case Op::SUB:
-      return "-";
+      ret += "-";
+      break;
     case Op::MUL:
-      return "*";
+      ret += "*";
+      break;
     case Op::DIV:
-      return "/";
+      ret += "/";
+      break;
     case Op::MOD:
-      return "%";
+      ret += "%";
+      break;
     case Op::AND:
-      return "&&";
+      ret += "&&";
+      break;
     case Op::OR:
-      return "||";
+      ret += "||";
+      break;
     case Op::EQ:
-      return "==";
+      ret += "==";
+      break;
     case Op::NEQ:
-      return "!=";
+      ret += "!=";
+      break;
     case Op::LT:
-      return "<";
+      ret += "<";
+      break;
     case Op::GT:
-      return ">";
+      ret += ">";
+      break;
     case Op::LEQ:
-      return "<=";
+      ret += "<=";
+      break;
     case Op::GEQ:
-      return ">=";
+      ret += ">=";
+      break;
   }
-  return "";
+  return ret;
 }

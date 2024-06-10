@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(poke C CXX)
+project(cpoke C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -47,7 +47,7 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp" "src/*.h" "src/*.hpp")
 set(NO_RTTI "-fno-rtti")
 add_definitions(${NO_RTTI})
 # 確認 src/main.c 文件存在且路徑正確
-add_executable(poke
+add_executable(cpoke
   ${SRC_FILES}
   ${FLEX_MyScanner_OUTPUTS}
   ${BISON_MyParser_OUTPUTS}
@@ -57,7 +57,7 @@ add_executable(poke
 
 
 # 確保鏈接 Flex 和 Bison 庫
-target_link_libraries(poke ${llvm_libs} ${FL_LIBRARY})
+target_link_libraries(cpoke ${llvm_libs} ${FL_LIBRARY})
 # llvm_update_compile_flag .s(poke)
 # target_link_libraries(poke )
 

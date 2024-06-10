@@ -22,12 +22,14 @@ public:
   const std::string getTypeName() const {
     return type->getName();
   }
-  // std::unique_ptr<Type> &getType() {
-  //   return type;
-  // }
+
+  void setKind(Type::Kind kind) {
+    type->setKind(kind);
+  }
+  bool cal_dim(Type real_type);
 
 private:
-  std::string           id;
+  std::string id;
   // std::unique_ptr<Type> type;
 };
 

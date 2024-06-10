@@ -26,6 +26,10 @@ public:
   const std::string &getName() const {
     return name;
   }
+  // gettype
+  const std::unique_ptr<Type> &getReturnType() {
+    return return_type;
+  }
   std::string prototype() const;
 };
 

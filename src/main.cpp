@@ -59,5 +59,8 @@ int main(int argc, char **argv) {
   }
   SemanticAnalyzer analyzer;
   ctx.root->accept(analyzer);
+  if (analyzer.hasErrorOccurred()) {
+    return 1;
+  }
   return 0;
 }

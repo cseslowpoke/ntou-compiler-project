@@ -23,7 +23,7 @@ public:
   std::unique_ptr<Expression> &getRHS() {
     return rhs;
   }
-  const std::string getOpName() const;
+  std::string getName() const;
 
 private:
   const Op                    op;

@@ -1,11 +1,13 @@
 #ifndef __SEMA_SEMANTICANALYZER_HPP
 #define __SEMA_SEMANTICANALYZER_HPP
 
+#include "AST/Ast.hpp"
 #include "Type.hpp"
 #include "visitor/AstNodeInclude.hpp"
 #include "visitor/AstNodeVisitor.hpp"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include <memory>
 
 class SemanticAnalyzer final : public ASTNodeVisitor {
 public:
@@ -29,19 +31,22 @@ public:
   void visit(VarDecl &node) override;
   void visit(VarRef &node) override;
   void visit(WhileStmt &node) override;
+  bool hasErrorOccurred();
 
 private:
   class Symbol {
   public:
     enum class Kind { Variable, Function };
-    Symbol(llvm::StringRef name, Kind kind, Type type);
+    Symbol(llvm::StringRef name, Kind kind, Type type, AstNode &node);
     llvm::StringRef getName() const;
     Kind            getKind() const;
+    Type            getType() const;
 
   private:
     llvm::StringRef name;
     Kind            kind;
     Type            type;
+    AstNode        &node;
   };
   class Scope {
   public:
@@ -52,9 +57,9 @@ private:
 
   private:
     llvm::StringMap<Symbol> symbols;
-    bool isLoop;
+    bool                    isLoop;
   };
-  bool              hasError;
+  bool               hasError;
   std::vector<Scope> scopes;
   Scope             &currentScope();
   void               pushScope(bool isLoop = false);

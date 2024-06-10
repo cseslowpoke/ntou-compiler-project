@@ -4,8 +4,8 @@
 SemanticAnalyzer::SemanticAnalyzer() {
   scopes.clear();
 }
-SemanticAnalyzer::Symbol::Symbol(llvm::StringRef name, Kind kind, Type type)
-  : name(name), kind(kind), type(type) {}
+SemanticAnalyzer::Symbol::Symbol(llvm::StringRef name, Kind kind, Type type, AstNode &node)
+  : name(name), kind(kind), type(type), node(node) {}
 
 llvm::StringRef SemanticAnalyzer::Symbol::getName() const {
   return name;
@@ -15,7 +15,11 @@ SemanticAnalyzer::Symbol::Kind SemanticAnalyzer::Symbol::getKind() const {
   return kind;
 }
 
-SemanticAnalyzer::Scope::Scope(bool isLoop): isLoop(isLoop){
+Type SemanticAnalyzer::Symbol::getType() const {
+  return type;
+}
+
+SemanticAnalyzer::Scope::Scope(bool isLoop) : isLoop(isLoop) {
   symbols.clear();
 }
 
@@ -55,7 +59,6 @@ bool SemanticAnalyzer::insertSymbol(Symbol symbol) {
   return true;
 }
 
-
 SemanticAnalyzer::Symbol *SemanticAnalyzer::lookupSymbol(llvm::StringRef name) {
   for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
     if (auto *symbol = it->lookup(name)) {
@@ -86,8 +89,7 @@ void SemanticAnalyzer::visit(BinaryOp &node) {
   if (!checkType(node.getLHS()->getType(), node.getRHS()->getType())) {
     hasError = true;
     llvm::outs() << "Error: Type mismatch\n";
-  }
-  else {
+  } else {
     auto type = std::make_unique<Type>(*node.getLHS()->getType());
     node.setType(std::move(type));
   }
@@ -122,13 +124,13 @@ void SemanticAnalyzer::visit(ForStmt &node) {
 
 void SemanticAnalyzer::visit(FuncInv &node) {
   node.visitChildren(*this);
+  auto *symbol = lookupSymbol(node.getName());
   // todo
 }
 
 void SemanticAnalyzer::visit(FuncDecl &node) {
   node.visitChildren(*this);
-  // todo
-  // insertSymbol(Symbol(node.getId(), Symbol::Kind::Function, node.getType()));
+  insertSymbol(Symbol(node.getName(), Symbol::Kind::Function, *node.getReturnType(), node));
 }
 
 void SemanticAnalyzer::visit(IfStmt &node) {
@@ -141,7 +143,7 @@ void SemanticAnalyzer::visit(NullStmt &node) {
 }
 
 void SemanticAnalyzer::visit(Program &node) {
-  llvm::outs () << "------ Semantic Analysis Start ------\n";
+  llvm::outs() << "------ Semantic Analysis Start ------\n";
   pushScope();
   node.visitChildren(*this);
   popScope();
@@ -156,11 +158,17 @@ void SemanticAnalyzer::visit(ReturnStmt &node) {
 
 void SemanticAnalyzer::visit(UnaryOp &node) {
   node.visitChildren(*this);
+  auto type = std::make_unique<Type>(*node.getExpr()->getType());
+  node.setType(std::move(type));
 }
 
 void SemanticAnalyzer::visit(VarDecl &node) {
   node.visitChildren(*this);
-  insertSymbol(Symbol(node.getId(), Symbol::Kind::Variable, *node.getType()));
+  if (node.getValue() && node.getValue()->getType() != node.getType()) {
+    hasError = true;
+    llvm::outs() << "Error: Type mismatch\n";
+  }
+  insertSymbol(Symbol(node.getId(), Symbol::Kind::Variable, *node.getType(), node));
 }
 
 void SemanticAnalyzer::visit(VarRef &node) {
@@ -170,10 +178,18 @@ void SemanticAnalyzer::visit(VarRef &node) {
     hasError = true;
     llvm::outs() << "Error: Variable not decleare\n";
   }
+  if (node.cal_dim(symbol->getType()) == false) {
+    hasError = true;
+    llvm::outs() << "Error: Array dimension mismatch\n";
+  }
+  node.setKind(symbol->getType().getKind());
 }
 
 void SemanticAnalyzer::visit(WhileStmt &node) {
   node.visitChildren(*this);
 }
 
+bool SemanticAnalyzer::hasErrorOccurred() {
+  return hasError;
+}
 // Path: src/lib/Sema/SemanticAnalyzer.cpp

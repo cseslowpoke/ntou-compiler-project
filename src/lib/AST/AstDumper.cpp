@@ -19,7 +19,7 @@ void AstDumper::visit(AssignStmt &node) {
 void AstDumper::visit(BinaryOp &node) {
   printIndent();
   llvm::outs() << llvm::formatv("BinaryOp <line:{0}, col:{1}> {2}\n", node.getLocation().line,
-                                node.getLocation().col, node.getOpName());
+                                node.getLocation().col, node.getName());
   increaseIndent();
   node.visitChildren(*this);
   decreaseIndent();
