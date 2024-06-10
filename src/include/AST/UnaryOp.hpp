@@ -6,24 +6,22 @@
 #include <memory>
 #include <string>
 
-class UnaryOp: public Expression {
-  public:
-    enum class Op {
-        NEG,
-        NOT
-    };
-    UnaryOp(const uint32_t line, const uint32_t col, Op p_op, std::unique_ptr<Expression> p_expr);
-    ~UnaryOp() = default;
+class UnaryOp : public Expression {
+public:
+  enum class Op { NEG, NOT };
+  UnaryOp(const uint32_t line, const uint32_t col, Op p_op, std::unique_ptr<Expression> p_expr);
+  ~UnaryOp() = default;
 
-    void accept(ASTNodeVisitor &v) override {v.visit(*this);};
-    void visitChildren(ASTNodeVisitor &v) override;
+  void accept(ASTNodeVisitor &v) override {
+    v.visit(*this);
+  };
+  void visitChildren(ASTNodeVisitor &v) override;
 
-    const std::string getOpName() const;
+  const std::string getOpName() const;
 
-  private:
-    const Op op;
-    const std::unique_ptr<Expression> expr;
+private:
+  const Op                          op;
+  const std::unique_ptr<Expression> expr;
 };
-
 
 #endif

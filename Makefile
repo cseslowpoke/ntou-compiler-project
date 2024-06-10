@@ -37,4 +37,7 @@ clean:
 	rm -f $(LEX_OUTPUT) $(YACC_OUTPUT) $(YACC_HEADER)
 	rm -rf $(CMAKE_BUILD_DIR)
 
-.PHONY: all build clean
+format:
+	find . -name '*.cpp' -o -name '*.hpp' -o -name '*.c' -o -name '*.h' | xargs clang-format -i
+
+.PHONY: all build clean format
