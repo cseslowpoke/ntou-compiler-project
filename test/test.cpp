@@ -3,9 +3,7 @@
 using namespace std;
 
 #ifdef LOCAL // =========== Local ===========
-void dbg() {
-  cerr << '\n';
-}
+void dbg() { cerr << '\n'; }
 template <class T, class... U> void dbg(T a, U... b) {
   cerr << a << ' ', dbg(b...);
 }
@@ -14,13 +12,13 @@ template <class T> void org(T l, T r) {
     cerr << *l++ << ' ';
   cerr << '\n';
 }
-#  define debug(args...) (dbg("#> (" + string(#args) + ") = (", args, ")"))
-#  define orange(args...) (cerr << "#> [" + string(#args) + ") = ", org(args))
+#define debug(args...) (dbg("#> (" + string(#args) + ") = (", args, ")"))
+#define orange(args...) (cerr << "#> [" + string(#args) + ") = ", org(args))
 #else // ======== OnlineJudge ========
-#  pragma GCC optimize("O3,unroll-loops")
-#  pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
-#  define debug(...) ((void)0)
-#  define orange(...) ((void)0)
+#pragma GCC optimize("O3,unroll-loops")
+#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
+#define debug(...) ((void)0)
+#define orange(...) ((void)0)
 #endif
 #define all(x) x.begin(), x.end()
 #define rall(x) x.rbegin(), x.rend()
@@ -32,16 +30,16 @@ template <class T> void org(T l, T r) {
 #define X first
 #define Y second
 #define rep(i, a) for (ll i = 0; i < a; i++)
-#define IO                                                                                         \
-  ios::sync_with_stdio(false);                                                                     \
+#define IO                                                                     \
+  ios::sync_with_stdio(false);                                                 \
   cin.tie(0)
 
 template <class T> using _pq = priority_queue<T, vector<T>, greater<T>>;
 const int mod = 1e9 + 7, N = 1 << 20, INF = 0x3f3f3f3f;
 
 struct trie {
-  trie   *child[26];
-  int     cnt;
+  trie *child[26];
+  int cnt;
   string *s;
   trie() {
     cnt = 0;
@@ -60,7 +58,7 @@ pair<int, string *> dfs(trie *cur) {
     }
   }
   cur->cnt = res.first;
-  cur->s   = res.second;
+  cur->s = res.second;
   return res;
 }
 

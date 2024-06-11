@@ -13,9 +13,7 @@ public:
           std::shared_ptr<std::vector<std::shared_ptr<FuncDecl>>> p_functions);
   ~Program() = default;
   std::shared_ptr<std::vector<std::shared_ptr<FuncDecl>>> functions;
-  void                                                    accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override;
 };
 #endif

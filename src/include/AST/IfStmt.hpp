@@ -9,13 +9,13 @@
 
 class IfStmt : public AstNode {
 public:
-  IfStmt(const uint32_t line, const uint32_t col, std::shared_ptr<Expression> p_condition,
-         std::shared_ptr<CompoundStmt> p_body, std::shared_ptr<CompoundStmt> p_else_body);
+  IfStmt(const uint32_t line, const uint32_t col,
+         std::shared_ptr<Expression> p_condition,
+         std::shared_ptr<CompoundStmt> p_body,
+         std::shared_ptr<CompoundStmt> p_else_body);
   ~IfStmt() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override;
 
   // const Expression *getCondition() const;
@@ -23,7 +23,7 @@ public:
   // const Ast *getElseBody() const;
 
 private:
-  const std::shared_ptr<Expression>   condition;
+  const std::shared_ptr<Expression> condition;
   const std::shared_ptr<CompoundStmt> body;
   const std::shared_ptr<CompoundStmt> else_body;
 };

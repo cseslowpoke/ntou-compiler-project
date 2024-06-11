@@ -13,20 +13,14 @@ public:
              std::shared_ptr<Expression> value);
   ~AssignStmt() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
-  void                     visitChildren(ASTNodeVisitor &v) override;
-  std::shared_ptr<VarRef> &getLHS() {
-    return lhs;
-  }
-  std::shared_ptr<Expression> &getRHS() {
-    return rhs;
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
+  void visitChildren(ASTNodeVisitor &v) override;
+  std::shared_ptr<VarRef> &getLHS() { return lhs; }
+  std::shared_ptr<Expression> &getRHS() { return rhs; }
   // VarRef* getVar() {return var.get();}
   // Expression* getValue() {return value.get();}
 private:
-  std::shared_ptr<VarRef>     lhs;
+  std::shared_ptr<VarRef> lhs;
   std::shared_ptr<Expression> rhs;
 };
 

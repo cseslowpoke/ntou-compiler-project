@@ -13,18 +13,17 @@ public:
           std::shared_ptr<std::vector<std::shared_ptr<Expression>>> args);
   ~FuncInv() = default;
 
-const std::string &getName() const {
-    return name;
+  const std::string &getName() const { return name; }
+  const std::shared_ptr<std::vector<std::shared_ptr<Expression>>>
+  getArgs() const {
+    return args;
   }
-  const std::shared_ptr<std::vector<std::shared_ptr<Expression>>> getArgs() const { return args; }
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override;
 
 private:
-  std::string                                               name;
+  std::string name;
   std::shared_ptr<std::vector<std::shared_ptr<Expression>>> args;
 };
 

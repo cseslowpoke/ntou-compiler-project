@@ -1,7 +1,8 @@
 #include "AST/Constant.hpp"
 
-Constant::Constant(uint32_t line, uint32_t col, std::shared_ptr<ValueType> value)
-  : Expression(line, col), _value(std::move(value)) {
+Constant::Constant(uint32_t line, uint32_t col,
+                   std::shared_ptr<ValueType> value)
+    : Expression(line, col), _value(std::move(value)) {
   // set type
   type = std::make_unique<Type>();
   if (std::holds_alternative<int>(*_value)) {

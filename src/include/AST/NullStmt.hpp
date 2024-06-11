@@ -7,9 +7,7 @@ public:
   NullStmt(uint32_t line, uint32_t col);
   ~NullStmt() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override {}
 };
 

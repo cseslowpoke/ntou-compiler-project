@@ -8,9 +8,7 @@ public:
   ContinueStmt(const uint32_t line, const uint32_t col);
   ~ContinueStmt() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override {}
 };
 

@@ -6,12 +6,12 @@
 
 class AstDumper : public ASTNodeVisitor {
 private:
-  int  indent = 0;
+  int indent = 0;
   void printIndent();
 
 public:
   ~AstDumper() = default;
-  AstDumper()  = default;
+  AstDumper() = default;
   void visit(AssignStmt &node) override;
   void visit(BinaryOp &node) override;
   void visit(BreakStmt &node) override;
@@ -30,11 +30,7 @@ public:
   void visit(VarDecl &node) override;
   void visit(VarRef &node) override;
   void visit(WhileStmt &node) override;
-  void increaseIndent() {
-    indent += 2;
-  };
-  void decreaseIndent() {
-    indent -= 2;
-  };
+  void increaseIndent() { indent += 2; };
+  void decreaseIndent() { indent -= 2; };
 };
 #endif

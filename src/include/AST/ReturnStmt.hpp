@@ -7,16 +7,13 @@
 #include <memory>
 class ReturnStmt : public AstNode {
 public:
-  ReturnStmt(const uint32_t line, const uint32_t col, std::shared_ptr<Expression> expr);
+  ReturnStmt(const uint32_t line, const uint32_t col,
+             std::shared_ptr<Expression> expr);
   ~ReturnStmt() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  }
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); }
   void visitChildren(ASTNodeVisitor &v) override;
-  const std::shared_ptr<Expression> &getReturnVal() {
-    return returnVal;
-  }
+  const std::shared_ptr<Expression> &getReturnVal() { return returnVal; }
   Type getType() { return type; }
   void setType(Type _type) { type = _type; }
 

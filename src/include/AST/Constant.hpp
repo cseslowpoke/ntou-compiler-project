@@ -12,10 +12,8 @@ public:
   Constant(uint32_t line, uint32_t col, std::shared_ptr<ValueType> value);
   ~Constant() = default;
 
-  void accept(ASTNodeVisitor &v) override {
-    v.visit(*this);
-  };
-  void        visitChildren(ASTNodeVisitor &v) override;
+  void accept(ASTNodeVisitor &v) override { v.visit(*this); };
+  void visitChildren(ASTNodeVisitor &v) override;
   std::string getValueString() const;
 
 private:
