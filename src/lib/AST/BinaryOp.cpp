@@ -1,6 +1,6 @@
 #include "AST/BinaryOp.hpp"
 BinaryOp::BinaryOp(const uint32_t line, const uint32_t col, Op p_op,
-                   std::unique_ptr<Expression> p_left, std::unique_ptr<Expression> p_right)
+                   std::shared_ptr<Expression> p_left, std::shared_ptr<Expression> p_right)
   : Expression{line, col, std::make_unique<Type>()}, op(p_op), lhs(std::move(p_left)),
     rhs(std::move(p_right)) {}
 

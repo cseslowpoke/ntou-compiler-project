@@ -8,7 +8,7 @@
 
 class DeclStmt : public AstNode {
 private:
-  std::vector<std::unique_ptr<VarDecl>> decls;
+  std::vector<std::shared_ptr<VarDecl>> decls;
 
 public:
   DeclStmt(uint32_t line, uint32_t col);
@@ -18,8 +18,8 @@ public:
     v.visit(*this);
   };
   void                                         visitChildren(ASTNodeVisitor &v) override;
-  void                                         addVarDecl(std::unique_ptr<VarDecl> p_var);
-  const std::vector<std::unique_ptr<VarDecl>> &getVarDecls() const {
+  void                                         addVarDecl(std::shared_ptr<VarDecl> p_var);
+  const std::vector<std::shared_ptr<VarDecl>> &getVarDecls() const {
     return decls;
   }
 };

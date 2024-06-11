@@ -69,23 +69,23 @@ extern int yylex_destroy(Context *ctx);
     float float_literal;
     std::string *string_literal;
     std::string *identifier;
-    std::vector<std::unique_ptr<FuncDecl>> *functions;
+    std::vector<std::shared_ptr<FuncDecl>> *functions;
     FuncDecl *function;
-    std::vector<std::unique_ptr<DeclStmt>> *decls;
+    std::vector<std::shared_ptr<DeclStmt>> *decls;
     DeclStmt *decl;
-    std::vector<std::unique_ptr<VarDecl>> *vars;
+    std::vector<std::shared_ptr<VarDecl>> *vars;
     VarDecl *variable;
-    std::vector<std::unique_ptr<AstNode>> *stmts;
+    std::vector<std::shared_ptr<AstNode>> *stmts;
     CompoundStmt *compound_stmt;
     AstNode *node;
     Type::Kind *type_kind;
     Type *type;
     Constant *constant;
     Expression *expr;
-    std::vector<std::unique_ptr<Expression>> *exprs;
+    std::vector<std::shared_ptr<Expression>> *exprs;
     VarRef *var_ref;
     FuncInv *func_inv;
-    // std::vector<std::unique_ptr<node>> nodes;
+    // std::vector<std::shared_ptr<node>> nodes;
 }
 
 %token <integer_literal> INTEGER_LITERAL
@@ -152,21 +152,21 @@ extern int yylex_destroy(Context *ctx);
 %%
 program: 
     Functions {
-        std::unique_ptr<std::vector<std::unique_ptr<FuncDecl>>> functions($1);
-        ctx->root = std::make_unique<Program>(@1.first_line, @1.first_column, std::move(functions)); 
+        std::shared_ptr<std::vector<std::shared_ptr<FuncDecl>>> functions($1);
+        ctx->root = std::make_shared<Program>(@1.first_line, @1.first_column, std::move(functions)); 
         // llvm::outs() << *(ctx->root->functions)[0]->getName();
     }
     ;
 
 Functions:
     Function {
-        $$ = new std::vector<std::unique_ptr<FuncDecl>>();
-        std::unique_ptr<FuncDecl> func($1);
+        $$ = new std::vector<std::shared_ptr<FuncDecl>>();
+        std::shared_ptr<FuncDecl> func($1);
         $$->push_back(std::move(func));
     }
     |
     Functions Function {
-        std::unique_ptr<FuncDecl> func($2);
+        std::shared_ptr<FuncDecl> func($2);
         $1->push_back(std::move(func));
     }
     ;
@@ -174,9 +174,9 @@ Functions:
 Function:
     Type ID L_PAREN ParameterList R_PAREN CompoundStatement {
         // std::string name = ;
-        std::unique_ptr<DeclStmt> p_decl($4);
-        std::unique_ptr<CompoundStmt> p_comstmt($6);
-        std::unique_ptr<Type> type = std::make_unique<Type>();
+        std::shared_ptr<DeclStmt> p_decl($4);
+        std::shared_ptr<CompoundStmt> p_comstmt($6);
+        std::shared_ptr<Type> type = std::make_shared<Type>();
         type->setKind(*$1);
         $$ = new FuncDecl(
             @1.first_line, @1.first_column,
@@ -198,13 +198,13 @@ ParameterList:
 
 Parameters:
     Parameter {
-        std::unique_ptr<VarDecl> tmp($1);
+        std::shared_ptr<VarDecl> tmp($1);
         $$ = new DeclStmt(@1.first_line, @1.first_column);
         $$->addVarDecl(std::move(tmp));
     }
     |
     Parameters COMMA Parameter {
-        std::unique_ptr<VarDecl> tmp($3);
+        std::shared_ptr<VarDecl> tmp($3);
         $$->addVarDecl(std::move(tmp));
     }
     ;
@@ -213,12 +213,12 @@ Parameter:
     Type ID ArrDeclList {
         $$ = new VarDecl(@1.first_line, @1.first_column, *$2);
         $3->setKind(*$1);
-        $$->setType(std::move(std::unique_ptr<Type>($3)));
+        $$->setType(std::move(std::shared_ptr<Type>($3)));
     }
     ;
 VarRef:
     ID ArrDeclList {
-        $$ = new VarRef(@1.first_line, @1.first_column, *$1, std::move(std::unique_ptr<Type>($2)));
+        $$ = new VarRef(@1.first_line, @1.first_column, *$1, std::move(std::shared_ptr<Type>($2)));
     }
     ;
 ArrDeclList:
@@ -256,13 +256,13 @@ DeclList:
 
 Declarations:
     Declaration {
-        $$ = new std::vector<std::unique_ptr<DeclStmt>>();
-        std::unique_ptr<DeclStmt> decl($1);
+        $$ = new std::vector<std::shared_ptr<DeclStmt>>();
+        std::shared_ptr<DeclStmt> decl($1);
         $$->push_back(std::move(decl));
     }
     |
     Declarations Declaration {
-        std::unique_ptr<DeclStmt> decl($2);
+        std::shared_ptr<DeclStmt> decl($2);
         $1->push_back(std::move(decl));
     }
     ;
@@ -271,7 +271,7 @@ Declaration:
     Type IDs SEMI {
         $$ = new DeclStmt(@1.first_line, @1.first_column);
         for (auto &var: *$2) {
-            std::unique_ptr<Type> &tp_ptr = var->getType();
+            std::shared_ptr<Type> &tp_ptr = var->getType();
             tp_ptr->setKind(*$1);
             $$->addVarDecl(std::move(var));
         }
@@ -280,17 +280,17 @@ Declaration:
 
 IDs:
     ID ArrDeclList ASSIGNorNot{
-        $$ = new std::vector<std::unique_ptr<VarDecl>>;
-        std::unique_ptr<Expression> expr($3);
-        auto tmp = std::make_unique<VarDecl>(@1.first_line, @1.first_column, *$1, std::move(expr));
-        std::unique_ptr<Type> tp($2);
+        $$ = new std::vector<std::shared_ptr<VarDecl>>;
+        std::shared_ptr<Expression> expr($3);
+        auto tmp = std::make_shared<VarDecl>(@1.first_line, @1.first_column, *$1, std::move(expr));
+        std::shared_ptr<Type> tp($2);
         tmp->setType(std::move(tp));
         $$->push_back(std::move(tmp));
     }
     |
     IDs COMMA ID ArrDeclList {
-        auto tmp = std::make_unique<VarDecl>(@3.first_line, @3.first_column, *$3);
-        std::unique_ptr<Type> tp($4);
+        auto tmp = std::make_shared<VarDecl>(@3.first_line, @3.first_column, *$3);
+        std::shared_ptr<Type> tp($4);
         tmp->setType(std::move(tp));
         $$->push_back(std::move(tmp));
     }
@@ -325,17 +325,17 @@ Type:
 
 Constant:
     INTEGER_LITERAL {
-        std::unique_ptr<Constant::ValueType> value = std::make_unique<Constant::ValueType>($1);
+        std::shared_ptr<Constant::ValueType> value = std::make_shared<Constant::ValueType>($1);
         $$ = new Constant(@1.first_line, @1.first_column, std::move(value));
     }
     |
     FLOAT_LITERAL { 
-        std::unique_ptr<Constant::ValueType> value =    std::make_unique<Constant::ValueType>($1);
+        std::shared_ptr<Constant::ValueType> value =    std::make_shared<Constant::ValueType>($1);
         $$ = new Constant(@1.first_line, @1.first_column, std::move(value));
     }
     |
     STRING_LITERAL { 
-        std::unique_ptr<Constant::ValueType> value =    std::make_unique<Constant::ValueType>(*$1);
+        std::shared_ptr<Constant::ValueType> value =    std::make_shared<Constant::ValueType>(*$1);
         $$ = new Constant(@1.first_line, @1.first_column, std::move(value));
     }
     ;
@@ -352,13 +352,13 @@ StatementList:
 ;
 Statements:
     Statement {
-        $$ = new std::vector<std::unique_ptr<AstNode>>;
-        std::unique_ptr<AstNode> stmt($1);
+        $$ = new std::vector<std::shared_ptr<AstNode>>;
+        std::shared_ptr<AstNode> stmt($1);
         $$->push_back(std::move(stmt));
     }
     |
     Statements Statement {
-        std::unique_ptr<AstNode> stmt($2);
+        std::shared_ptr<AstNode> stmt($2);
         $$->push_back(std::move(stmt));
     }
 ;
@@ -390,16 +390,16 @@ Statement:
 
 CompoundStatement: 
     L_BRACE DeclList StatementList R_BRACE {
-        std::unique_ptr<std::vector<std::unique_ptr<DeclStmt>>> p_decls($2);
-        std::unique_ptr<std::vector<std::unique_ptr<AstNode>>> p_stmts($3);
+        std::shared_ptr<std::vector<std::shared_ptr<DeclStmt>>> p_decls($2);
+        std::shared_ptr<std::vector<std::shared_ptr<AstNode>>> p_stmts($3);
         $$ = new CompoundStmt(@1.first_line, @1.first_column, std::move(p_decls), std::move(p_stmts));
     }
     ;      
 
 Simple: 
     VarRef ASSIGN Expression SEMI {
-        std::unique_ptr<VarRef> var($1);
-        std::unique_ptr<Expression> expr($3);
+        std::shared_ptr<VarRef> var($1);
+        std::shared_ptr<Expression> expr($3);
         $$ = new AssignStmt(@1.first_line, @1.first_column, std::move(var), std::move(expr));
     }
     |
@@ -414,7 +414,7 @@ Simple:
 
 Jump:
     KW_RETURN Expression SEMI {
-        std::unique_ptr<Expression> expr($2);
+        std::shared_ptr<Expression> expr($2);
         $$ = new ReturnStmt(@1.first_line, @1.first_column, std::move(expr));
     }
     | 
@@ -428,9 +428,9 @@ Jump:
 
 If: 
     KW_IF L_PAREN Expression R_PAREN CompoundStatement ElseOrNot {
-        std::unique_ptr<Expression> cond($3);
-        std::unique_ptr<CompoundStmt> then_stmt($5);
-        std::unique_ptr<CompoundStmt> else_stmt($6);
+        std::shared_ptr<Expression> cond($3);
+        std::shared_ptr<CompoundStmt> then_stmt($5);
+        std::shared_ptr<CompoundStmt> else_stmt($6);
         $$ = new IfStmt(@1.first_line, @1.first_column, std::move(cond), std::move(then_stmt), std::move(else_stmt));
     }
     ;
@@ -446,20 +446,20 @@ ElseOrNot:
 
 While: 
     KW_WHILE L_PAREN Expression R_PAREN CompoundStatement {
-        std::unique_ptr<Expression> cond($3);
-        std::unique_ptr<CompoundStmt> body($5);
+        std::shared_ptr<Expression> cond($3);
+        std::shared_ptr<CompoundStmt> body($5);
         $$ = new WhileStmt(@1.first_line, @1.first_column, std::move(cond), std::move(body));
     }
     ;
 
 For:
     KW_FOR L_PAREN Simple Expression SEMI  VarRef ASSIGN Expression  R_PAREN CompoundStatement {
-        std::unique_ptr<AstNode> init($3);
-        std::unique_ptr<Expression> cond($4);
-        std::unique_ptr<VarRef> var($6);
-        std::unique_ptr<Expression> expr($8);
-        std::unique_ptr<AssignStmt> update = std::make_unique<AssignStmt>(@6.first_line, @6.first_column, std::move(var), std::move(expr));
-        std::unique_ptr<CompoundStmt> body($10);
+        std::shared_ptr<AstNode> init($3);
+        std::shared_ptr<Expression> cond($4);
+        std::shared_ptr<VarRef> var($6);
+        std::shared_ptr<Expression> expr($8);
+        std::shared_ptr<AssignStmt> update = std::make_shared<AssignStmt>(@6.first_line, @6.first_column, std::move(var), std::move(expr));
+        std::shared_ptr<CompoundStmt> body($10);
         $$ = new ForStmt(@1.first_line, @1.first_column, std::move(init), std::move(cond), std::move(update), std::move(body));
     }
     ;
@@ -469,7 +469,7 @@ For:
   // Expression
 FuncInvocation:
     ID L_PAREN ArgumentList R_PAREN {
-        std::unique_ptr<std::vector<std::unique_ptr<Expression>> > args($3);
+        std::shared_ptr<std::vector<std::shared_ptr<Expression>> > args($3);
         $$ = new FuncInv(@1.first_line, @1.first_column, *$1, std::move(args));
     }
     
@@ -484,14 +484,14 @@ ArgumentList:
 
 Arguments:
     Expression {
-        $$ = new std::vector<std::unique_ptr<Expression>>;
-        std::unique_ptr<Expression> expr($1);
+        $$ = new std::vector<std::shared_ptr<Expression>>;
+        std::shared_ptr<Expression> expr($1);
         $$->push_back(std::move(expr));
     }
     |
     Arguments COMMA Expression {
         $$ = $1;
-        std::unique_ptr<Expression> expr($3);
+        std::shared_ptr<Expression> expr($3);
         $$->push_back(std::move(expr));
     }
 
@@ -509,104 +509,104 @@ Expression:
     }
     |
     Expression PLUS Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::ADD;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression MINUS Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::SUB;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression MULTIPLY Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::MUL;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression DIVIDE Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::DIV;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression MOD Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::MOD;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression LESS Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::LT;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression LESS_OR_EQUAL Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::LEQ;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression GREATER Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::GT;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression GREATER_OR_EQUAL Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::GEQ;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression EQUAL Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::EQ;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression NOT_EQUAL Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::NEQ;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression AND Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::AND;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     Expression OR Expression {
-        std::unique_ptr<Expression> lhs($1);
-        std::unique_ptr<Expression> rhs($3);
+        std::shared_ptr<Expression> lhs($1);
+        std::shared_ptr<Expression> rhs($3);
         BinaryOp::Op op = BinaryOp::Op::OR;
         $$ = new BinaryOp(@2.first_line, @2.first_column, op, std::move(lhs), std::move(rhs));
     }
     |
     NOT Expression {
-        std::unique_ptr<Expression> rhs($2);
+        std::shared_ptr<Expression> rhs($2);
         UnaryOp::Op op = UnaryOp::Op::NOT;
         $$ = new UnaryOp(@1.first_line, @1.first_column, op, std::move(rhs));
     }
     |
     MINUS Expression %prec UMINUS {
-        std::unique_ptr<Expression> rhs($2);
+        std::shared_ptr<Expression> rhs($2);
         UnaryOp::Op op = UnaryOp::Op::NEG;
         $$ = new UnaryOp(@1.first_line, @1.first_column, op, std::move(rhs));
     }

@@ -62,5 +62,9 @@ int main(int argc, char **argv) {
   if (analyzer.hasErrorOccurred()) {
     return 1;
   }
+  if (ctx.dumpAST) {
+    AstDumper dumper;
+    ctx.root->accept(dumper);
+  }
   return 0;
 }

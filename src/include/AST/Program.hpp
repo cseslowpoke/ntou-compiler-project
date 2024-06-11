@@ -10,9 +10,9 @@
 class Program : public AstNode {
 public:
   Program(uint32_t line, uint32_t col,
-          std::unique_ptr<std::vector<std::unique_ptr<FuncDecl>>> p_functions);
+          std::shared_ptr<std::vector<std::shared_ptr<FuncDecl>>> p_functions);
   ~Program() = default;
-  std::unique_ptr<std::vector<std::unique_ptr<FuncDecl>>> functions;
+  std::shared_ptr<std::vector<std::shared_ptr<FuncDecl>>> functions;
   void                                                    accept(ASTNodeVisitor &v) override {
     v.visit(*this);
   }

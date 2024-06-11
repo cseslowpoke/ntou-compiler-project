@@ -9,7 +9,7 @@
 #include <string>
 class VarDecl : public AstNode {
 public:
-  VarDecl(uint32_t line, uint32_t col, std::string id, std::unique_ptr<Expression> value = nullptr);
+  VarDecl(uint32_t line, uint32_t col, std::string id, std::shared_ptr<Expression> value = nullptr);
   ~VarDecl() = default;
   void accept(ASTNodeVisitor &v) override {
     v.visit(*this);
@@ -21,19 +21,19 @@ public:
   const std::string getTypeName() const {
     return type->getName();
   }
-  void setType(std::unique_ptr<Type> _type) {
+  void setType(std::shared_ptr<Type> _type) {
     type = std::move(_type);
   }
-  std::unique_ptr<Type> &getType() {
+  std::shared_ptr<Type> &getType() {
     return type;
   };
-  std::unique_ptr<Expression> &getValue() {
+  std::shared_ptr<Expression> &getValue() {
     return value;
   }
 
 private:
   std::string                 id;
-  std::unique_ptr<Type>       type;
-  std::unique_ptr<Expression> value;
+  std::shared_ptr<Type>       type;
+  std::shared_ptr<Expression> value;
 };
 #endif

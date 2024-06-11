@@ -7,9 +7,9 @@
 
 class ForStmt : public AstNode {
 public:
-  ForStmt(const uint32_t line, const uint32_t col, std::unique_ptr<AstNode> p_init,
-          std::unique_ptr<Expression> p_condition, std::unique_ptr<AstNode> p_update,
-          std::unique_ptr<CompoundStmt> p_body);
+  ForStmt(const uint32_t line, const uint32_t col, std::shared_ptr<AstNode> p_init,
+          std::shared_ptr<Expression> p_condition, std::shared_ptr<AstNode> p_update,
+          std::shared_ptr<CompoundStmt> p_body);
   ~ForStmt() = default;
 
   void accept(ASTNodeVisitor &v) override {
@@ -20,10 +20,10 @@ public:
   // const Expression *getCondition() const;
   // const Ast *getBody() const;
 private:
-  const std::unique_ptr<AstNode>      init;
-  const std::unique_ptr<Expression>   condition;
-  const std::unique_ptr<AstNode>      update;
-  const std::unique_ptr<CompoundStmt> body;
+  const std::shared_ptr<AstNode>      init;
+  const std::shared_ptr<Expression>   condition;
+  const std::shared_ptr<AstNode>      update;
+  const std::shared_ptr<CompoundStmt> body;
 };
 
 #endif

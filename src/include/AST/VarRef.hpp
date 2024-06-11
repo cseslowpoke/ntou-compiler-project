@@ -9,7 +9,7 @@
 class VarRef : public Expression {
 public:
   VarRef(const uint32_t line, const uint32_t col, std::string id,
-         std::unique_ptr<Type> type = nullptr);
+         std::shared_ptr<Type> type = nullptr);
   ~VarRef() = default;
 
   void accept(ASTNodeVisitor &v) override {

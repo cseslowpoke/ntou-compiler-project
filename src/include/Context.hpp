@@ -8,7 +8,7 @@
 typedef struct Context {
   bool                     dumpTokens;
   bool                     dumpAST;
-  std::unique_ptr<Program> root;
+  std::shared_ptr<Program> root;
 } Context;
 
 #endif // CONTEXT_HPP

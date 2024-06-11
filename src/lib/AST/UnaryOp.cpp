@@ -1,7 +1,7 @@
 #include "AST/UnaryOp.hpp"
 
 UnaryOp::UnaryOp(const uint32_t line, const uint32_t col, Op p_op,
-                 std::unique_ptr<Expression> p_expr)
+                 std::shared_ptr<Expression> p_expr)
   : Expression(line, col), op(p_op), expr(std::move(p_expr)) {}
 
 void UnaryOp::visitChildren(ASTNodeVisitor &p_visitor) {

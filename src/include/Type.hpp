@@ -14,7 +14,6 @@ public:
   };
   void setKind(Kind _kind) {
     kind   = _kind;
-    dim_1d = 1;
   };
   int &getDim1d() {
     return dim_1d;
@@ -48,6 +47,8 @@ public:
     for (int dim : arraydim) {
       name += "[" + std::to_string(dim) + "]";
     }
+    // if (dim_1d > 1)
+    //   name += " -> " + std::to_string(dim_1d); 
     return name;
   }
   friend bool operator==(const Type &lhs, const Type &rhs) {
@@ -60,7 +61,7 @@ public:
 
 private:
   Kind kind;
-  int  dim_1d; // for array
+  int  dim_1d = 1; // for array
 };
 
 #endif // TYPE_HPP

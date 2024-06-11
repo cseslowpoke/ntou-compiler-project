@@ -10,13 +10,13 @@
 class FuncInv : public Expression {
 public:
   FuncInv(uint32_t line, uint32_t col, std::string name,
-          std::unique_ptr<std::vector<std::unique_ptr<Expression>>> args);
+          std::shared_ptr<std::vector<std::shared_ptr<Expression>>> args);
   ~FuncInv() = default;
 
 const std::string &getName() const {
     return name;
   }
-  // const std::vector<std::unique_ptr<Expression>>& getArgs() const { return args; }
+  const std::shared_ptr<std::vector<std::shared_ptr<Expression>>> getArgs() const { return args; }
 
   void accept(ASTNodeVisitor &v) override {
     v.visit(*this);
@@ -25,7 +25,7 @@ const std::string &getName() const {
 
 private:
   std::string                                               name;
-  std::unique_ptr<std::vector<std::unique_ptr<Expression>>> args;
+  std::shared_ptr<std::vector<std::shared_ptr<Expression>>> args;
 };
 
 #endif

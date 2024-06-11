@@ -37,37 +37,42 @@ private:
   class Symbol {
   public:
     enum class Kind { Variable, Function };
-    Symbol(llvm::StringRef name, Kind kind, Type type, AstNode &node);
+    Symbol(llvm::StringRef name, Kind kind, Type type, std::shared_ptr<AstNode> node);
     llvm::StringRef getName() const;
     Kind            getKind() const;
     Type            getType() const;
-
+    std::shared_ptr<AstNode>         getNode();
   private:
     llvm::StringRef name;
     Kind            kind;
     Type            type;
-    AstNode        &node;
+    std::shared_ptr<AstNode>         node;
   };
   class Scope {
   public:
     Scope(bool isLoop = false);
     void    insert(Symbol symbol);
     bool    isLoopScope();
+    void    setLoop(bool isLoop);
     Symbol *lookup(llvm::StringRef name);
-
   private:
     llvm::StringMap<Symbol> symbols;
     bool                    isLoop;
+
   };
   bool               hasError;
   std::vector<Scope> scopes;
+  std::shared_ptr<Type>               returnType;
   Scope             &currentScope();
   void               pushScope(bool isLoop = false);
   void               popScope();
   bool               insertSymbol(Symbol symbol);
   Symbol            *lookupSymbol(llvm::StringRef name);
-  bool               checkType(std::unique_ptr<Type> &type);
-  bool               checkType(std::unique_ptr<Type> &type1, std::unique_ptr<Type> &type2);
+  bool               checkType(std::shared_ptr<Type> type);
+  bool               checkType(std::shared_ptr<Type> type1, 
+  std::shared_ptr<Type> type2);
+  std::shared_ptr<Type>          getType() const;
+  void          setType(std::shared_ptr<Type> type);
 };
 
 #endif

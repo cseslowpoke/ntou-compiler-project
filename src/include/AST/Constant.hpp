@@ -9,7 +9,7 @@
 class Constant : public Expression {
 public:
   using ValueType = std::variant<int, float, std::string>;
-  Constant(uint32_t line, uint32_t col, std::unique_ptr<ValueType> value);
+  Constant(uint32_t line, uint32_t col, std::shared_ptr<ValueType> value);
   ~Constant() = default;
 
   void accept(ASTNodeVisitor &v) override {
@@ -19,7 +19,7 @@ public:
   std::string getValueString() const;
 
 private:
-  std::unique_ptr<ValueType> _value;
+  std::shared_ptr<ValueType> _value;
 };
 
 #endif

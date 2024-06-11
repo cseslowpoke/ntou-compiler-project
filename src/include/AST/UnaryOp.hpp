@@ -9,7 +9,7 @@
 class UnaryOp : public Expression {
 public:
   enum class Op { NEG, NOT };
-  UnaryOp(const uint32_t line, const uint32_t col, Op p_op, std::unique_ptr<Expression> p_expr);
+  UnaryOp(const uint32_t line, const uint32_t col, Op p_op, std::shared_ptr<Expression> p_expr);
   ~UnaryOp() = default;
 
   void accept(ASTNodeVisitor &v) override {
@@ -18,13 +18,13 @@ public:
   void visitChildren(ASTNodeVisitor &v) override;
 
   const std::string                  getOpName() const;
-  const std::unique_ptr<Expression> &getExpr() {
+  const std::shared_ptr<Expression> &getExpr() {
     return expr;
   }
 
 private:
   const Op                          op;
-  const std::unique_ptr<Expression> expr;
+  const std::shared_ptr<Expression> expr;
 };
 
 #endif
