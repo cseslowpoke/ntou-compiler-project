@@ -159,9 +159,6 @@ void SemanticAnalyzer::visit(FuncInv &node) {
     auto argList = node.getArgs();
     std::shared_ptr<AstNode> node = symbol->getNode();
     AstNode* funcDecl = node.get();
-    // if (funcDecl) {
-    //   FuncDecl* func = llvm::dyn_cast<FuncDecl>(funcDecl);
-    // }
     if (!(llvm::dyn_cast<FuncDecl>(funcDecl)->checkPrototype(argList))) {
       hasError = true;
       llvm::outs() << "Error: Function prototype mismatch\n";
