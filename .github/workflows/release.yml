@@ -55,7 +55,7 @@ jobs:
       - name: Package executable
         run: |
           cd build
-          zip poke.zip poke
+          zip cpoke.zip cpoke
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1

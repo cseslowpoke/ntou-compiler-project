@@ -165,7 +165,6 @@ void SemanticAnalyzer::visit(FuncInv &node) {
     }
   }
 
-  // todo
 }
 
 void SemanticAnalyzer::visit(FuncDecl &node) {
