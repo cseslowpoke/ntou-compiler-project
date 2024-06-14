@@ -11,7 +11,10 @@ bool VarRef::cal_dim(Type real_type) {
   int &dim = type->getDim1d();
   const std::vector<int> &array_ = type->getArrayDim();
   const std::vector<int> &real_dim = real_type.getArrayDim();
-  dim = array_[0];
+  if (array_.size() == 0) {
+    dim = 1;
+    return true;
+  }
   for (int i = 1; i < array_.size(); i++) {
     dim += array_[i] * real_dim[i - 1];
   }

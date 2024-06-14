@@ -1,6 +1,7 @@
 
 #include "AST/Ast.hpp"
 #include "AST/AstDumper.hpp"
+#include "CodeGen/CodeGen.hpp"
 #include "Context.hpp"
 #include "Sema/SemanticAnalyzer.hpp"
 #include "parser.h"
@@ -68,9 +69,11 @@ int main(int argc, char **argv) {
   if (analyzer.hasErrorOccurred()) {
     return 1;
   }
-  if (ctx.dumpAST) {
-    AstDumper dumper;
-    ctx.root->accept(dumper);
-  }
+  // if (ctx.dumpAST) {
+  //   AstDumper dumper;
+  //   ctx.root->accept(dumper);
+  // }
+  CodeGen codegen;
+  codegen.compile(ctx.root);
   return 0;
 }

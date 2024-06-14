@@ -9,7 +9,7 @@ void BinaryOp::visitChildren(ASTNodeVisitor &p_visitor) {
   lhs->accept(p_visitor);
   rhs->accept(p_visitor);
 }
-#include "llvm/Support/raw_ostream.h"
+
 std::string BinaryOp::getName() const {
   std::string ret = type->getName() + " ";
   switch (op) {
