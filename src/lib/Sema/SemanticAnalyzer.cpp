@@ -82,7 +82,7 @@ void SemanticAnalyzer::visit(AssignStmt &node) {
   node.visitChildren(*this);
   if (!checkType(node.getLHS()->getType(), node.getRHS()->getType())) {
     hasError = true;
-    llvm::outs() << "Error: Type mismatch\n";
+    llvm::outs() << "Error: Assign Type mismatch\n";
   }
 }
 
@@ -90,7 +90,7 @@ void SemanticAnalyzer::visit(BinaryOp &node) {
   node.visitChildren(*this);
   if (!checkType(node.getLHS()->getType(), node.getRHS()->getType())) {
     hasError = true;
-    llvm::outs() << "Error: Type mismatch\n";
+    llvm::outs() << "Error: Binary Type mismatch\n";
   } else {
     auto type = std::make_shared<Type>(*node.getLHS()->getType());
     node.setType(std::move(type));
@@ -101,7 +101,7 @@ void SemanticAnalyzer::visit(BreakStmt &node) {
   node.visitChildren(*this);
   if (!currentScope().isLoopScope()) {
     hasError = true;
-    llvm::outs() << "Error: continue statement not in loop\n";
+    llvm::outs() << "Error: break statement not in loop\n";
   }
 }
 
@@ -186,9 +186,9 @@ void SemanticAnalyzer::visit(UnaryOp &node) {
 
 void SemanticAnalyzer::visit(VarDecl &node) {
   node.visitChildren(*this);
-  if (node.getValue() && node.getValue()->getType() != node.getType()) {
+  if (node.getValue() && !checkType(node.getValue()->getType(), node.getType())) {
     hasError = true;
-    llvm::outs() << "Error: Type mismatch\n";
+    llvm::outs() << "Error: VarDecl Type mismatch\n";
   }
   insertSymbol(Symbol(node.getId(), Symbol::Kind::Variable, *node.getType(),
                       std::make_shared<VarDecl>(node)));
@@ -200,6 +200,7 @@ void SemanticAnalyzer::visit(VarRef &node) {
   if (symbol == nullptr) {
     hasError = true;
     llvm::outs() << "Error: Variable not decleare\n";
+    return;
   }
   if (node.cal_dim(symbol->getType()) == false) {
     hasError = true;

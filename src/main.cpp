@@ -69,10 +69,10 @@ int main(int argc, char **argv) {
   if (analyzer.hasErrorOccurred()) {
     return 1;
   }
-  // if (ctx.dumpAST) {
-  //   AstDumper dumper;
-  //   ctx.root->accept(dumper);
-  // }
+  if (ctx.dumpAST) {
+    AstDumper dumper;
+    ctx.root->accept(dumper);
+  }
   CodeGen codegen;
   codegen.compile(ctx.root);
   return 0;
